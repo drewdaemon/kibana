@@ -27,7 +27,11 @@ import {
 } from '@kbn/coloring';
 import { css } from '@emotion/react';
 import { isNumericFieldForDatatable } from '../../../common/expressions';
-import { applyPaletteParams, PalettePanelContainer } from '../../shared_components';
+import {
+  applyPaletteParams,
+  PalettePanelContainer,
+  useDebouncedValue,
+} from '../../shared_components';
 import type { VisualizationDimensionEditorProps } from '../../types';
 import { defaultPaletteParams, RANGE_MIN } from './palette_config';
 import { MetricVisualizationState } from './visualization';
@@ -39,6 +43,15 @@ type Props = VisualizationDimensionEditorProps<MetricVisualizationState> & {
 
 export function MetricDimensionEditor(props: Props) {
   const { state, setState, accessor } = props;
+
+  const { inputValue: prefixInputVal, handleInputChange: handlePrefixChange } =
+    useDebouncedValue<string>(
+      {
+        onChange: (prefix: string) => setState({ ...state, secondaryPrefix: prefix }),
+        value: state.secondaryPrefix || '',
+      },
+      { allowFalsyValue: true }
+    );
 
   switch (accessor) {
     case state?.metricAccessor:
@@ -55,8 +68,8 @@ export function MetricDimensionEditor(props: Props) {
           >
             <EuiFieldText
               compressed
-              value={state.secondaryPrefix}
-              onChange={({ target: { value } }) => setState({ ...state, secondaryPrefix: value })}
+              value={prefixInputVal}
+              onChange={({ target: { value } }) => handlePrefixChange(value)}
             />
           </EuiFormRow>
         </div>
