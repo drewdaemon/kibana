@@ -12,7 +12,11 @@ import { Datatable, DatatableColumn } from '@kbn/expressions-plugin/common';
 import { SerializedFieldFormat } from '@kbn/field-formats-plugin/common';
 import { ExpressionValueVisDimension } from '@kbn/visualizations-plugin/common';
 import type { LegendSize } from '@kbn/visualizations-plugin/public';
-import { ChartTypes, ExpressionValuePartitionLabels } from './expression_functions';
+import {
+  ChartTypes,
+  ExpressionValuePartitionLabels,
+  ExpressionValuePartitionLayerBucket,
+} from './expression_functions';
 
 export enum EmptySizeRatios {
   SMALL = 0.3,
@@ -78,8 +82,8 @@ export interface PartitionVisParams extends VisCommonParams {
   nestedLegend?: boolean;
 }
 
-export interface PieVisConfig extends VisCommonConfig {
-  buckets?: Array<ExpressionValueVisDimension | string>;
+export interface PieVisConfig extends Omit<VisCommonConfig, 'metric'> {
+  partitionLayers: ExpressionValuePartitionLayerBucket[];
   isDonut: boolean;
   emptySizeRatio?: EmptySizeRatios;
   respectSourceOrder?: boolean;

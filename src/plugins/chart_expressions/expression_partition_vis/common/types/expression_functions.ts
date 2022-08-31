@@ -12,12 +12,14 @@ import {
   ExpressionValueRender,
   ExpressionValueBoxed,
 } from '@kbn/expressions-plugin/common';
+import { ExpressionValueVisDimension } from '@kbn/visualizations-plugin/common';
 import {
   PARTITION_LABELS_VALUE,
   PIE_VIS_EXPRESSION_NAME,
   TREEMAP_VIS_EXPRESSION_NAME,
   MOSAIC_VIS_EXPRESSION_NAME,
   WAFFLE_VIS_EXPRESSION_NAME,
+  PARTITION_LAYER_BUCKETS_NAME,
 } from '../constants';
 import {
   RenderValue,
@@ -54,6 +56,23 @@ export type ExpressionValuePartitionLabels = ExpressionValueBoxed<
     /** @deprecated This field is deprecated and going to be removed in the futher release versions. */
     last_level?: boolean;
   }
+>;
+
+export interface PartitionLayerBucketArguments {
+  metric: ExpressionValueVisDimension | string;
+  bucket?: ExpressionValueVisDimension | string; // TODO - not sure why the buckets column was considered optional, but preserving for now
+}
+
+export type ExpressionValuePartitionLayerBucket = ExpressionValueBoxed<
+  'partition_layer_bucket',
+  PartitionLayerBucketArguments
+>;
+
+export type PartitionLayerBucketExpressionFunctionDefinition = ExpressionFunctionDefinition<
+  typeof PARTITION_LAYER_BUCKETS_NAME,
+  null,
+  PartitionLayerBucketArguments,
+  ExpressionValuePartitionLayerBucket
 >;
 
 export type PieVisExpressionFunctionDefinition = ExpressionFunctionDefinition<

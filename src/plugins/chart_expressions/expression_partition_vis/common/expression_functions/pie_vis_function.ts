@@ -9,20 +9,25 @@
 import { Position } from '@elastic/charts';
 import { prepareLogTable, validateAccessor } from '@kbn/visualizations-plugin/common/utils';
 import { DEFAULT_LEGEND_SIZE, LegendSize } from '@kbn/visualizations-plugin/common/constants';
+import { ExpressionValueVisDimension } from '@kbn/visualizations-plugin/common';
 import { EmptySizeRatios, LegendDisplay, PartitionVisParams } from '../types/expression_renderers';
-import { ChartTypes, PieVisExpressionFunctionDefinition } from '../types';
+import {
+  ChartTypes,
+  PartitionLayerBucketExpressionFunctionDefinition,
+  PieVisExpressionFunctionDefinition,
+} from '../types';
 import {
   PARTITION_LABELS_FUNCTION,
   PARTITION_LABELS_VALUE,
   PIE_VIS_EXPRESSION_NAME,
   PARTITION_VIS_RENDERER_NAME,
+  PARTITION_LAYER_BUCKET_NAME,
 } from '../constants';
 import { errors, strings } from './i18n';
 
-export const pieVisFunction = (): PieVisExpressionFunctionDefinition => ({
-  name: PIE_VIS_EXPRESSION_NAME,
-  type: 'render',
-  inputTypes: ['datatable'],
+export const partitionLayerBucket = (): PartitionLayerBucketExpressionFunctionDefinition => ({
+  name: PARTITION_LAYER_BUCKET_NAME,
+  inputTypes: [],
   help: strings.getPieVisFunctionName(),
   args: {
     metric: {
@@ -30,9 +35,25 @@ export const pieVisFunction = (): PieVisExpressionFunctionDefinition => ({
       help: strings.getMetricArgHelp(),
       required: true,
     },
-    buckets: {
+    bucket: {
       types: ['vis_dimension', 'string'],
       help: strings.getBucketsArgHelp(),
+    },
+  },
+  fn(_context, args, _handlers) {
+    return { type: 'partition_layer_bucket', ...args };
+  },
+});
+
+export const pieVisFunction = (): PieVisExpressionFunctionDefinition => ({
+  name: PIE_VIS_EXPRESSION_NAME,
+  type: 'render',
+  inputTypes: ['datatable'],
+  help: strings.getPieVisFunctionName(),
+  args: {
+    partitionLayers: {
+      types: ['partition_layer_bucket'],
+      help: '',
       multi: true,
     },
     splitColumn: {
@@ -137,16 +158,26 @@ export const pieVisFunction = (): PieVisExpressionFunctionDefinition => ({
       throw new Error(errors.splitRowAndSplitColumnAreSpecifiedError());
     }
 
-    validateAccessor(args.metric, context.columns);
-    if (args.buckets) {
-      args.buckets.forEach((bucket) => validateAccessor(bucket, context.columns));
-    }
+    args.partitionLayers.forEach((partitionLayer) => {
+      validateAccessor(partitionLayer.metric, context.columns);
+      if (partitionLayer.bucket) {
+        validateAccessor(partitionLayer.bucket, context.columns);
+      }
+    });
+
     if (args.splitColumn) {
       args.splitColumn.forEach((splitColumn) => validateAccessor(splitColumn, context.columns));
     }
     if (args.splitRow) {
       args.splitRow.forEach((splitRow) => validateAccessor(splitRow, context.columns));
     }
+
+    const metric = args.partitionLayers[0].metric; // TODO support more than one metric?
+    const buckets = args.partitionLayers
+      .map(({ bucket }) => bucket)
+      .filter((bucket) => typeof bucket !== 'undefined') as Array<
+      string | ExpressionValueVisDimension
+    >;
 
     const visConfig: PartitionVisParams = {
       ...args,
@@ -156,8 +187,8 @@ export const pieVisFunction = (): PieVisExpressionFunctionDefinition => ({
         handlers.getExecutionContext?.()?.description,
       palette: args.palette,
       dimensions: {
-        metric: args.metric,
-        buckets: args.buckets,
+        metric,
+        buckets,
         splitColumn: args.splitColumn,
         splitRow: args.splitRow,
       },
@@ -170,8 +201,8 @@ export const pieVisFunction = (): PieVisExpressionFunctionDefinition => ({
       const logTable = prepareLogTable(
         context,
         [
-          [[args.metric], strings.getSliceSizeHelp()],
-          [args.buckets, strings.getSliceHelp()],
+          [[metric], strings.getSliceSizeHelp()],
+          [buckets, strings.getSliceHelp()],
           [args.splitColumn, strings.getColumnSplitHelp()],
           [args.splitRow, strings.getRowSplitHelp()],
         ],

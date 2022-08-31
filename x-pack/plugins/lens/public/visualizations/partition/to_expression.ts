@@ -154,20 +154,43 @@ const generateCommonArguments: GenerateExpressionAstArguments = (
   };
 };
 
-const generatePieVisAst: GenerateExpressionAstFunction = (...rest) => ({
-  type: 'expression',
-  chain: [
-    {
-      type: 'function',
-      function: 'pieVis',
-      arguments: {
-        ...generateCommonArguments(...rest),
-        respectSourceOrder: [false],
-        startFromSecondLargestSlice: [true],
+const generatePieVisAst: GenerateExpressionAstFunction = (...rest) => {
+  const [, , operations, layer] = rest;
+
+  const commonArgs = generateCommonArguments(...rest);
+  delete commonArgs.buckets;
+  delete commonArgs.metric;
+
+  return {
+    type: 'expression',
+    chain: [
+      {
+        type: 'function',
+        function: 'pieVis',
+        arguments: {
+          ...commonArgs,
+          partitionLayers: operations
+            .map((o) => o.columnId)
+            .map((columnId) => ({
+              type: 'expression',
+              chain: [
+                {
+                  type: 'function',
+                  function: 'partitionLayerBucket',
+                  arguments: {
+                    metric: layer.metric ? [prepareDimension(layer.metric)] : [], // TODO - why this uncertainty about the presence of the metric?
+                    bucket: [prepareDimension(columnId)],
+                  },
+                },
+              ],
+            })),
+          respectSourceOrder: [false],
+          startFromSecondLargestSlice: [true],
+        },
       },
-    },
-  ],
-});
+    ],
+  };
+};
 
 const generateDonutVisAst: GenerateExpressionAstFunction = (...rest) => {
   const [, , , layer] = rest;

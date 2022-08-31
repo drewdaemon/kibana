@@ -15,6 +15,7 @@ import {
   mosaicVisFunction,
   waffleVisFunction,
 } from '../common';
+import { partitionLayerBucket } from '../common/expression_functions/pie_vis_function';
 import { getPartitionVisRenderer } from './expression_renderers';
 import {
   ExpressionPartitionVisPluginSetup,
@@ -34,6 +35,7 @@ export class ExpressionPartitionVisPlugin {
     { expressions, charts }: SetupDeps
   ): ExpressionPartitionVisPluginSetup {
     expressions.registerFunction(partitionLabelsFunction);
+    expressions.registerFunction(partitionLayerBucket);
     expressions.registerFunction(pieVisFunction);
     expressions.registerFunction(treemapVisFunction);
     expressions.registerFunction(mosaicVisFunction);

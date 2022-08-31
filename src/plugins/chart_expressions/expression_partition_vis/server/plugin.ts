@@ -13,6 +13,7 @@ import {
   mosaicVisFunction,
   waffleVisFunction,
 } from '../common';
+import { partitionLayerBucket } from '../common/expression_functions/pie_vis_function';
 import {
   ExpressionPartitionVisPluginSetup,
   ExpressionPartitionVisPluginStart,
@@ -31,6 +32,7 @@ export class ExpressionPartitionVisPlugin
 {
   public setup(core: CoreSetup, { expressions }: SetupDeps) {
     expressions.registerFunction(partitionLabelsFunction);
+    expressions.registerFunction(partitionLayerBucket);
     expressions.registerFunction(pieVisFunction);
     expressions.registerFunction(treemapVisFunction);
     expressions.registerFunction(mosaicVisFunction);
