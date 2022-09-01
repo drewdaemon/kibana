@@ -10,6 +10,7 @@ export const PLUGIN_ID = 'expressionPartitionVis';
 export const PLUGIN_NAME = 'expressionPartitionVis';
 
 export const PARTITION_LAYER_BUCKET_NAME = 'partitionLayerBucket';
+export const PARTITION_LAYER_FIELDS_NAME = 'partitionLayerFields';
 export const PIE_VIS_EXPRESSION_NAME = 'pieVis';
 export const TREEMAP_VIS_EXPRESSION_NAME = 'treemapVis';
 export const MOSAIC_VIS_EXPRESSION_NAME = 'mosaicVis';

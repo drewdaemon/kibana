@@ -14,6 +14,7 @@ import { EmptySizeRatios, LegendDisplay, PartitionVisParams } from '../types/exp
 import {
   ChartTypes,
   PartitionLayerBucketExpressionFunctionDefinition,
+  PartitionLayerFieldsExpressionFunctionDefinition,
   PieVisExpressionFunctionDefinition,
 } from '../types';
 import {
@@ -22,6 +23,7 @@ import {
   PIE_VIS_EXPRESSION_NAME,
   PARTITION_VIS_RENDERER_NAME,
   PARTITION_LAYER_BUCKET_NAME,
+  PARTITION_LAYER_FIELDS_NAME,
 } from '../constants';
 import { errors, strings } from './i18n';
 
@@ -42,6 +44,23 @@ export const partitionLayerBucket = (): PartitionLayerBucketExpressionFunctionDe
   },
   fn(_context, args, _handlers) {
     return { type: 'partition_layer_bucket', ...args };
+  },
+});
+
+export const partitionLayerFields = (): PartitionLayerFieldsExpressionFunctionDefinition => ({
+  name: PARTITION_LAYER_FIELDS_NAME,
+  inputTypes: [],
+  help: strings.getPieVisFunctionName(),
+  args: {
+    fields: {
+      types: ['vis_dimension', 'string'],
+      help: '',
+      required: true,
+      multi: true,
+    },
+  },
+  fn(_context, args, _handlers) {
+    return { type: 'partition_layer_fields', ...args };
   },
 });
 
@@ -172,13 +191,6 @@ export const pieVisFunction = (): PieVisExpressionFunctionDefinition => ({
       args.splitRow.forEach((splitRow) => validateAccessor(splitRow, context.columns));
     }
 
-    const metric = args.partitionLayers[0].metric; // TODO support more than one metric?
-    const buckets = args.partitionLayers
-      .map(({ bucket }) => bucket)
-      .filter((bucket) => typeof bucket !== 'undefined') as Array<
-      string | ExpressionValueVisDimension
-    >;
-
     const visConfig: PartitionVisParams = {
       ...args,
       ariaLabel:
@@ -187,8 +199,7 @@ export const pieVisFunction = (): PieVisExpressionFunctionDefinition => ({
         handlers.getExecutionContext?.()?.description,
       palette: args.palette,
       dimensions: {
-        metric,
-        buckets,
+        partitionLayers: args.partitionLayers,
         splitColumn: args.splitColumn,
         splitRow: args.splitRow,
       },
@@ -197,6 +208,13 @@ export const pieVisFunction = (): PieVisExpressionFunctionDefinition => ({
     if (handlers?.inspectorAdapters?.tables) {
       handlers.inspectorAdapters.tables.reset();
       handlers.inspectorAdapters.tables.allowCsvExport = true;
+
+      const metric = args.partitionLayers[0].metric; // TODO support more than one metric?
+      const buckets = args.partitionLayers
+        .map(({ bucket }) => bucket)
+        .filter((bucket) => typeof bucket !== 'undefined') as Array<
+        string | ExpressionValueVisDimension
+      >;
 
       const logTable = prepareLogTable(
         context,

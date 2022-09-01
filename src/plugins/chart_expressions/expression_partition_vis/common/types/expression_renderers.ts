@@ -16,6 +16,7 @@ import {
   ChartTypes,
   ExpressionValuePartitionLabels,
   ExpressionValuePartitionLayerBucket,
+  ExpressionValuePartitionLayerFields,
 } from './expression_functions';
 
 export enum EmptySizeRatios {
@@ -33,8 +34,7 @@ export interface Dimension {
 }
 
 export interface Dimensions {
-  metric?: ExpressionValueVisDimension | string;
-  buckets?: Array<ExpressionValueVisDimension | string>;
+  partitionLayers: Array<ExpressionValuePartitionLayerBucket | ExpressionValuePartitionLayerFields>;
   splitRow?: Array<ExpressionValueVisDimension | string>;
   splitColumn?: Array<ExpressionValueVisDimension | string>;
 }

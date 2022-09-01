@@ -96,10 +96,10 @@ const PartitionVisComponent = (props: PartitionVisComponentProps) => {
   const chartTheme = props.chartsThemeService.useChartsTheme();
   const chartBaseTheme = props.chartsThemeService.useChartsBaseTheme();
 
-  const { bucketColumns, metricColumn } = useMemo(
-    () => getColumns(props.visParams, props.visData),
-    [props.visData, props.visParams]
-  );
+  // const { bucketColumns, metricColumn } = useMemo(
+  //   () => getColumns(props.visParams, props.visData),
+  //   [props.visData, props.visParams]
+  // );
 
   const formatters = useMemo(
     () => generateFormatters(visData, services.fieldFormats.deserialize),
@@ -222,7 +222,7 @@ const PartitionVisComponent = (props: PartitionVisComponentProps) => {
 
   const defaultFormatter = services.fieldFormats.deserialize;
   // formatters
-  const metricFieldFormatter = getFormatter(metricColumn, formatters, defaultFormatter);
+  // const metricFieldFormatter = getFormatter(metricColumn, formatters, defaultFormatter);
   const { splitColumn, splitRow } = visParams.dimensions;
 
   const splitChartFormatter = splitColumn
@@ -255,7 +255,6 @@ const PartitionVisComponent = (props: PartitionVisComponentProps) => {
     () =>
       getLayers(
         visType,
-        bucketColumns,
         visParams,
         visData,
         props.uiState?.get('vis.colors', {}),
@@ -268,7 +267,6 @@ const PartitionVisComponent = (props: PartitionVisComponentProps) => {
       ),
     [
       visType,
-      bucketColumns,
       visParams,
       visData,
       props.uiState,
@@ -280,21 +278,21 @@ const PartitionVisComponent = (props: PartitionVisComponentProps) => {
     ]
   );
 
-  const rescaleFactor = useMemo(() => {
-    const overallSum = visData.rows.reduce((sum, row) => sum + row[metricColumn.id], 0);
-    const slices = visData.rows.map((row) => row[metricColumn.id] / overallSum);
-    const smallSlices = slices.filter((value) => value < 0.02) ?? [];
-    if (smallSlices.length) {
-      // shrink up to 20% to give some room for the linked values
-      return 1 / (1 + Math.min(smallSlices.length * 0.05, 0.2));
-    }
-    return 1;
-  }, [visData.rows, metricColumn]);
+  // const rescaleFactor = useMemo(() => {
+  //   const overallSum = visData.rows.reduce((sum, row) => sum + row[metricColumn.id], 0);
+  //   const slices = visData.rows.map((row) => row[metricColumn.id] / overallSum);
+  //   const smallSlices = slices.filter((value) => value < 0.02) ?? [];
+  //   if (smallSlices.length) {
+  //     // shrink up to 20% to give some room for the linked values
+  //     return 1 / (1 + Math.min(smallSlices.length * 0.05, 0.2));
+  //   }
+  //   return 1;
+  // }, [visData.rows, metricColumn]);
 
-  const themeOverrides = useMemo(
-    () => getPartitionTheme(visType, visParams, chartTheme, dimensions, rescaleFactor),
-    [visType, visParams, chartTheme, dimensions, rescaleFactor]
-  );
+  // const themeOverrides = useMemo(
+  //   () => getPartitionTheme(visType, visParams, chartTheme, dimensions, rescaleFactor),
+  //   [visType, visParams, chartTheme, dimensions, rescaleFactor]
+  // );
 
   const fixedViewPort = document.getElementById('app-fixed-viewport');
   const tooltip: TooltipProps = {
@@ -321,30 +319,31 @@ const PartitionVisComponent = (props: PartitionVisComponentProps) => {
    * Checks whether data have all zero values.
    * If so, the no data container is loaded.
    */
-  const isAllZeros = useMemo(
-    () => visData.rows.every((row) => row[metricColumn.id] === 0),
-    [visData.rows, metricColumn]
-  );
+  // const isAllZeros = useMemo(
+  //   () => visData.rows.every((row) => row[metricColumn.id] === 0),
+  //   [visData.rows, metricColumn]
+  // );
 
   const isEmpty = visData.rows.length === 0;
-  const isMetricEmpty = visData.rows.every((row) => !row[metricColumn.id]);
+  // const isMetricEmpty = visData.rows.every((row) => !row[metricColumn.id]);
 
   /**
    * Checks whether data have negative values.
    * If so, the no data container is loaded.
    */
-  const hasNegative = useMemo(
-    () =>
-      visData.rows.some((row) => {
-        const value = row[metricColumn.id];
-        return typeof value === 'number' && value < 0;
-      }),
-    [visData.rows, metricColumn]
-  );
+  // const hasNegative = useMemo(
+  //   () =>
+  //     visData.rows.some((row) => {
+  //       const value = row[metricColumn.id];
+  //       return typeof value === 'number' && value < 0;
+  //     }),
+  //   [visData.rows, metricColumn]
+  // );
 
   const flatLegend = isLegendFlat(visType, splitChartDimension);
 
-  const canShowPieChart = !isEmpty && !isMetricEmpty && !isAllZeros && !hasNegative;
+  // const canShowPieChart = !isEmpty && !isMetricEmpty && !isAllZeros && !hasNegative;
+  const canShowPieChart = true;
 
   const { euiTheme } = useEuiTheme();
 
@@ -425,7 +424,7 @@ const PartitionVisComponent = (props: PartitionVisComponentProps) => {
               theme={[
                 // Chart background should be transparent for the usage at Canvas.
                 { background: { color: 'transparent' } },
-                themeOverrides,
+                // themeOverrides,
                 chartTheme,
                 {
                   legend: {
@@ -446,7 +445,11 @@ const PartitionVisComponent = (props: PartitionVisComponentProps) => {
               data={visData.rows}
               layout={partitionType}
               specialFirstInnermostSector={visParams.startFromSecondLargestSlice}
-              valueAccessor={(d: Datum) => getSliceValue(d, metricColumn)}
+              // valueAccessor={(d: Datum) => getSliceValue(d, metricColumn)}
+              valueAccessor={(...args) => {
+                console.log(...args);
+                return 1;
+              }}
               percentFormatter={(d: number) => percentFormatter.convert(d / 100)}
               valueGetter={
                 !visParams.labels.show ||
@@ -455,10 +458,11 @@ const PartitionVisComponent = (props: PartitionVisComponentProps) => {
                   ? undefined
                   : ValueFormats.PERCENT
               }
-              valueFormatter={(d: number) =>
-                !visParams.labels.show || !visParams.labels.values
-                  ? ''
-                  : metricFieldFormatter.convert(d)
+              valueFormatter={
+                (d: number) => d + ''
+                // !visParams.labels.show || !visParams.labels.values
+                //   ? ''
+                //   : metricFieldFormatter.convert(d)
               }
               layers={layers}
               topGroove={!visParams.labels.show ? 0 : undefined}

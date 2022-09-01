@@ -60,7 +60,7 @@ export type ExpressionValuePartitionLabels = ExpressionValueBoxed<
 
 export interface PartitionLayerBucketArguments {
   metric: ExpressionValueVisDimension | string;
-  bucket?: ExpressionValueVisDimension | string; // TODO - not sure why the buckets column was considered optional, but preserving for now
+  bucket: ExpressionValueVisDimension | string; // TODO - not sure why the buckets column was considered optional, but preserving for now
 }
 
 export type ExpressionValuePartitionLayerBucket = ExpressionValueBoxed<
@@ -73,6 +73,22 @@ export type PartitionLayerBucketExpressionFunctionDefinition = ExpressionFunctio
   null,
   PartitionLayerBucketArguments,
   ExpressionValuePartitionLayerBucket
+>;
+
+export interface PartitionLayerFieldsArguments {
+  fields: Array<ExpressionValueVisDimension | string>;
+}
+
+export type ExpressionValuePartitionLayerFields = ExpressionValueBoxed<
+  'partition_layer_fields',
+  PartitionLayerFieldsArguments
+>;
+
+export type PartitionLayerFieldsExpressionFunctionDefinition = ExpressionFunctionDefinition<
+  typeof PARTITION_LAYER_BUCKETS_NAME,
+  null,
+  PartitionLayerFieldsArguments,
+  ExpressionValuePartitionLayerFields
 >;
 
 export type PieVisExpressionFunctionDefinition = ExpressionFunctionDefinition<
