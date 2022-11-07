@@ -23,7 +23,8 @@ import {
   LegendDisplay,
 } from '../../../common';
 import { getDefaultVisualValuesForLayer } from '../../shared_components/datasource_default_values';
-import { isCollapsed } from './visualization';
+import { getMultiMetricsBucketDimensionCount, isCollapsed } from './visualization';
+import { PartitionChartsMeta } from './partition_charts_meta';
 
 interface Attributes {
   isPreview: boolean;
@@ -141,10 +142,14 @@ const generateCommonArguments: GenerateExpressionAstArguments = (
   datasourceLayers,
   paletteService
 ) => {
+  const maxBuckets =
+    PartitionChartsMeta[state.shape].maxBuckets - getMultiMetricsBucketDimensionCount(layer);
+
   return {
     labels: generateCommonLabelsAstArgs(state, attributes, layer),
     buckets: operations
       .filter(({ columnId }) => !isCollapsed(columnId, layer))
+      .slice(0, maxBuckets)
       .map(({ columnId }) => columnId)
       .map(prepareDimension),
     metrics: (layer.allowMultipleMetrics ? layer.metrics : [layer.metrics[0]]).map(

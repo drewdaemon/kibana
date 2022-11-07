@@ -16,11 +16,10 @@ import {
 import { LayerTypes } from '@kbn/expression-xy-plugin/public';
 import { chartPluginMock } from '@kbn/charts-plugin/public/mocks';
 import { createMockDatasource, createMockFramePublicAPI } from '../../mocks';
-import { FramePublicAPI } from '../../types';
+import { AccessorConfig, FramePublicAPI } from '../../types';
 import { themeServiceMock } from '@kbn/core/public/mocks';
 import { cloneDeep } from 'lodash';
 import { PartitionChartsMeta } from './partition_charts_meta';
-import { CollapseFunction } from '../../../common/expressions';
 import { PaletteOutput } from '@kbn/coloring';
 
 jest.mock('../../id_generator');
@@ -63,37 +62,8 @@ function mockFrame(): FramePublicAPI {
 // Just a basic bootstrap here to kickstart the tests
 describe('pie_visualization', () => {
   describe('#getErrorMessages', () => {
-    describe('too many dimensions', () => {
-      const state = { ...getExampleState(), shape: PieChartTypes.MOSAIC };
-      const colIds = new Array(PartitionChartsMeta.mosaic.maxBuckets + 1)
-        .fill(undefined)
-        .map((_, i) => String(i + 1));
-
-      state.layers[0].primaryGroups = colIds.slice(0, 2);
-      state.layers[0].secondaryGroups = colIds.slice(2);
-
-      it('returns error', () => {
-        expect(pieVisualization.getErrorMessages(state)).toHaveLength(1);
-      });
-
-      it("doesn't count collapsed dimensions", () => {
-        const localState = cloneDeep(state);
-        localState.layers[0].collapseFns = {
-          [colIds[0]]: 'some-fn' as CollapseFunction,
-        };
-
-        expect(pieVisualization.getErrorMessages(localState)).toHaveLength(0);
-      });
-
-      it('counts multiple metrics as an extra bucket dimension', () => {
-        const localState = cloneDeep(state);
-        localState.layers[0].primaryGroups.pop();
-        expect(pieVisualization.getErrorMessages(localState)).toHaveLength(0);
-
-        localState.layers[0].metrics.push('one-metric', 'another-metric');
-
-        expect(pieVisualization.getErrorMessages(localState)).toHaveLength(1);
-      });
+    it('should return no errors', () => {
+      expect(pieVisualization.getErrorMessages(getExampleState(), mockFrame())).toHaveLength(0);
     });
   });
 
@@ -238,10 +208,14 @@ describe('pie_visualization', () => {
           Array [
             Object {
               "columnId": "1",
+              "invalid": false,
+              "invalidMessage": "You have too many dimensions. This one is not currently in use.",
               "triggerIcon": "aggregate",
             },
             Object {
               "columnId": "2",
+              "invalid": false,
+              "invalidMessage": "You have too many dimensions. This one is not currently in use.",
               "palette": Array [
                 "red",
                 "black",
@@ -290,6 +264,33 @@ describe('pie_visualization', () => {
       expect(getConfig(stateWithCollapsed).groups[1].supportsMoreColumns).toBeTruthy();
     });
 
+    it('marks extra bucket columns as invalid', () => {
+      const colIds = new Array(PartitionChartsMeta.pie.maxBuckets + 1)
+        .fill(undefined)
+        .map((_, i) => String(i + 1));
+
+      const frame = mockFrame();
+      frame.datasourceLayers[LAYER_ID]!.getTableSpec = () =>
+        colIds.map((id) => ({ columnId: id, fields: [] }));
+
+      const state = getExampleState();
+      state.layers[0].primaryGroups = colIds;
+
+      const bucketAccessors = pieVisualization.getConfiguration({
+        state,
+        frame,
+        layerId: state.layers[0].layerId,
+      }).groups[1].accessors;
+
+      expect(bucketAccessors[bucketAccessors.length - 1].invalid).toBeTruthy();
+      expect(bucketAccessors[bucketAccessors.length - 1]).toEqual(
+        expect.objectContaining<Partial<AccessorConfig>>({
+          invalid: true,
+          invalidMessage: expect.any(String),
+        })
+      );
+    });
+
     it('counts multiple metrics toward the dimension limits when not mosaic', () => {
       const colIds = new Array(PartitionChartsMeta.pie.maxBuckets - 1)
         .fill(undefined)
@@ -318,7 +319,7 @@ describe('pie_visualization', () => {
       expect(getConfig(stateWithMultipleMetrics).groups[1].supportsMoreColumns).toBeFalsy();
     });
 
-    it('does NOT count multiple metrics toward the dimension limits when mosaic', () => {
+    it('does NOT count multiple metrics toward the dimension limits when multi-metric mode is disabled', () => {
       const frame = mockFrame();
       frame.datasourceLayers[LAYER_ID]!.getTableSpec = () => [];
 
@@ -342,7 +343,7 @@ describe('pie_visualization', () => {
       expect(getConfig(stateWithMultipleMetrics).groups[1].supportsMoreColumns).toBeTruthy();
     });
 
-    it('reports too many metric dimensions if multiple not enabled', () => {
+    it('marks extra metric dimensions as invalid if multiple not enabled', () => {
       const colIds = ['1', '2', '3', '4'];
 
       const frame = mockFrame();
@@ -357,8 +358,29 @@ describe('pie_visualization', () => {
           state,
           frame,
           layerId: state.layers[0].layerId,
-        }).groups[0].dimensionsTooMany
-      ).toBe(3);
+        }).groups[0].accessors
+      ).toMatchInlineSnapshot(`
+        Array [
+          Object {
+            "columnId": "1",
+          },
+          Object {
+            "columnId": "2",
+            "invalid": true,
+            "invalidMessage": "Only one metric is allowed.",
+          },
+          Object {
+            "columnId": "3",
+            "invalid": true,
+            "invalidMessage": "Only one metric is allowed.",
+          },
+          Object {
+            "columnId": "4",
+            "invalid": true,
+            "invalidMessage": "Only one metric is allowed.",
+          },
+        ]
+      `);
 
       state.layers[0].allowMultipleMetrics = true;
       expect(
@@ -366,8 +388,23 @@ describe('pie_visualization', () => {
           state,
           frame,
           layerId: state.layers[0].layerId,
-        }).groups[0].dimensionsTooMany
-      ).toBe(0);
+        }).groups[0].accessors
+      ).toMatchInlineSnapshot(`
+        Array [
+          Object {
+            "columnId": "1",
+          },
+          Object {
+            "columnId": "2",
+          },
+          Object {
+            "columnId": "3",
+          },
+          Object {
+            "columnId": "4",
+          },
+        ]
+      `);
     });
 
     it.each(Object.values(PieChartTypes).filter((type) => type !== 'mosaic'))(

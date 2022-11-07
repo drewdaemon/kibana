@@ -13,7 +13,6 @@ import type { PaletteRegistry } from '@kbn/coloring';
 import { ThemeServiceStart } from '@kbn/core/public';
 import { KibanaThemeProvider } from '@kbn/kibana-react-plugin/public';
 import { VIS_EVENT_TO_TRIGGER } from '@kbn/visualizations-plugin/public';
-import { EuiSpacer } from '@elastic/eui';
 import { PartitionVisConfiguration } from '@kbn/visualizations-plugin/common/convert_to_lens';
 import { LayerTypes } from '@kbn/expression-xy-plugin/public';
 import type { FormBasedPersistedState } from '../../datasources/form_based/types';
@@ -66,6 +65,12 @@ const numberMetricOperations = (op: OperationMetadata) =>
 
 export const isCollapsed = (columnId: string, layer: PieLayerState) =>
   Boolean(layer.collapseFns?.[columnId]);
+
+export const hasMultipleValidMetrics = (layer: PieLayerState) =>
+  layer.metrics.length > 1 && layer.allowMultipleMetrics;
+
+export const getMultiMetricsBucketDimensionCount = (layer: PieLayerState) =>
+  hasMultipleValidMetrics(layer) ? 1 : 0;
 
 const applyPaletteToAccessorConfigs = (
   columns: AccessorConfig[],
@@ -152,52 +157,57 @@ export const getPieVisualization = ({
 
     const getPrimaryGroupConfig = (): VisualizationDimensionGroupConfig => {
       const originalOrder = getSortedGroups(datasource, layer);
-      // When we add a column it could be empty, and therefore have no order
-      const accessors: AccessorConfig[] = originalOrder.map((accessor) => ({
-        columnId: accessor,
-        triggerIcon: isCollapsed(accessor, layer) ? ('aggregate' as const) : undefined,
-      }));
+
+      const maxBuckets =
+        PartitionChartsMeta[state.shape].maxBuckets - getMultiMetricsBucketDimensionCount(layer);
+
+      const totalNonCollapsedAccessors = originalOrder.reduce(
+        (total, columnId) => total + (isCollapsed(columnId, layer) ? 0 : 1),
+        0
+      );
+
+      let accessorCount = 0;
+      const accessors: AccessorConfig[] = originalOrder.map((accessor) => {
+        const collapsed = isCollapsed(accessor, layer);
+
+        if (!collapsed) {
+          accessorCount++;
+        }
+
+        return {
+          columnId: accessor,
+          triggerIcon: collapsed ? ('aggregate' as const) : undefined,
+          invalid: !collapsed && accessorCount > maxBuckets,
+          invalidMessage: i18n.translate('xpack.lens.pie.tooManyBucketDimensions', {
+            defaultMessage: 'You have too many dimensions. This one is not currently in use.',
+          }),
+        };
+      });
 
       if (accessors.length) {
         applyPaletteToAccessorConfigs(accessors, layer, state.palette, paletteService);
       }
+
+      const fakeFinalAccessor = hasMultipleValidMetrics(layer)
+        ? {
+            label: i18n.translate('xpack.lens.pie.multiMetricAccessorLabel', {
+              defaultMessage: '{number} metrics',
+              values: {
+                number: layer.metrics.length,
+              },
+            }),
+          }
+        : undefined;
 
       const primaryGroupConfigBaseProps = {
         groupId: 'primaryGroups',
         accessors,
         enableDimensionEditor: true,
         filterOperations: bucketedOperations,
+        fakeFinalAccessor,
+        supportsMoreColumns: totalNonCollapsedAccessors < maxBuckets,
+        dimensionsTooMany: totalNonCollapsedAccessors - maxBuckets,
       };
-
-      // We count multiple metrics as a bucket dimension.
-      //
-      // However, if this is a mosaic chart, we don't support multiple metrics
-      // so if there is more than one metric we got here via a chart switch from
-      // a subtype that supports multi-metrics e.g. pie.
-      //
-      // The user will be prompted to remove the extra metric dimensions and we don't
-      // count multiple metrics as a bucket dimension so that the rest of the dimension
-      // groups UI behaves correctly.
-      const multiMetricsBucketDimensionCount =
-        layer.metrics.length > 1 && state.shape !== 'mosaic' ? 1 : 0;
-
-      const totalNonCollapsedAccessors =
-        accessors.reduce(
-          (total, { columnId }) => total + (isCollapsed(columnId, layer) ? 0 : 1),
-          0
-        ) + multiMetricsBucketDimensionCount;
-
-      const fakeFinalAccessor =
-        layer.metrics.length > 1 && layer.allowMultipleMetrics
-          ? {
-              label: i18n.translate('xpack.lens.pie.multiMetricAccessorLabel', {
-                defaultMessage: '{number} metrics',
-                values: {
-                  number: layer.metrics.length,
-                },
-              }),
-            }
-          : undefined;
 
       switch (state.shape) {
         case 'donut':
@@ -210,9 +220,6 @@ export const getPieVisualization = ({
             dimensionEditorGroupLabel: i18n.translate('xpack.lens.pie.sliceDimensionGroupLabel', {
               defaultMessage: 'Slice',
             }),
-            fakeFinalAccessor,
-            supportsMoreColumns: totalNonCollapsedAccessors < PartitionChartsMeta.pie.maxBuckets,
-            dimensionsTooMany: totalNonCollapsedAccessors - PartitionChartsMeta.pie.maxBuckets,
             dataTestSubj: 'lnsPie_sliceByDimensionPanel',
             hideGrouping: true,
           };
@@ -238,11 +245,6 @@ export const getPieVisualization = ({
             dimensionEditorGroupLabel: i18n.translate('xpack.lens.pie.treemapDimensionGroupLabel', {
               defaultMessage: 'Group',
             }),
-            fakeFinalAccessor,
-            supportsMoreColumns:
-              totalNonCollapsedAccessors < PartitionChartsMeta[state.shape].maxBuckets,
-            dimensionsTooMany:
-              totalNonCollapsedAccessors - PartitionChartsMeta[state.shape].maxBuckets,
             dataTestSubj: 'lnsPie_groupByDimensionPanel',
             hideGrouping: state.shape === 'treemap',
           };
@@ -543,39 +545,7 @@ export const getPieVisualization = ({
     return suggestion;
   },
 
-  getErrorMessages(state) {
-    const hasTooManyBucketDimensions = state.layers
-      .map((layer) => {
-        const totalBucketDimensions =
-          Array.from(new Set([...layer.primaryGroups, ...(layer.secondaryGroups ?? [])])).filter(
-            (columnId) => !isCollapsed(columnId, layer)
-          ).length +
-          // multiple metrics counts as a dimension
-          (layer.metrics.length > 1 ? 1 : 0);
-        return totalBucketDimensions > PartitionChartsMeta[state.shape].maxBuckets;
-      })
-      .some(Boolean);
-
-    return hasTooManyBucketDimensions
-      ? [
-          {
-            shortMessage: i18n.translate('xpack.lens.pie.tooManyDimensions', {
-              defaultMessage: 'Your visualization has too many dimensions.',
-            }),
-            longMessage: (
-              <span>
-                {i18n.translate('xpack.lens.pie.tooManyDimensionsLong', {
-                  defaultMessage:
-                    'Your visualization has too many dimensions. Please follow the instructions in the layer panel.',
-                })}
-                <EuiSpacer size="s" />
-                {i18n.translate('xpack.lens.pie.collapsedDimensionsDontCount', {
-                  defaultMessage: "(Collapsed dimensions don't count toward this limit.)",
-                })}
-              </span>
-            ),
-          },
-        ]
-      : [];
+  getErrorMessages() {
+    return [];
   },
 });

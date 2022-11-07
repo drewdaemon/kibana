@@ -804,7 +804,7 @@ export type VisualizationDimensionGroupConfig = SharedDimensionProps & {
   supportStaticValue?: boolean;
   paramEditorCustomProps?: ParamEditorCustomProps;
   enableFormatSelector?: boolean;
-  formatSelectorOptions?: FormatSelectorOptions; // only relevant if supportFieldFormat is true
+  formatSelectorOptions?: FormatSelectorOptions;
   labels?: { buttonAriaLabel: string; buttonLabel: string };
 };
 
