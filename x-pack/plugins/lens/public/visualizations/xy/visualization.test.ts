@@ -7,7 +7,7 @@
 
 import { getXyVisualization } from './visualization';
 import { Position } from '@elastic/charts';
-import { Operation, OperationDescriptor, DatasourcePublicAPI } from '../../types';
+import { Operation, OperationDescriptor, DatasourcePublicAPI, AccessorConfig } from '../../types';
 import type {
   State,
   XYState,
@@ -1985,7 +1985,6 @@ describe('xy_visualization', () => {
         expect(config.groups[0].accessors).toEqual([
           { color: '#f04e98', columnId: 'an1', triggerIcon: 'color' },
         ]);
-        expect(config.groups[0].invalid).toEqual(false);
       });
 
       it('When data layer is empty, should return invalid state', () => {
@@ -1996,7 +1995,12 @@ describe('xy_visualization', () => {
           frame,
           layerId: 'annotations',
         });
-        expect(config.groups[0].invalid).toEqual(true);
+        expect(config.groups[0].accessors[0]).toEqual(
+          expect.objectContaining<Partial<AccessorConfig>>({
+            invalid: true,
+            invalidMessage: 'Annotations require a time based chart to work. Add a date histogram.',
+          })
+        );
       });
     });
 

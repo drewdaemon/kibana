@@ -463,7 +463,7 @@ export const getAnnotationsConfiguration = ({
   state: XYState;
   frame: Pick<FramePublicAPI, 'datasourceLayers'>;
   layer: XYAnnotationLayerConfig;
-}) => {
+}): ReturnType<Visualization['getConfiguration']> => {
   const hasDateHistogram = isDateHistogram(getDataLayers(state.layers), frame);
 
   const groupLabel = getAxisName('x', { isHorizontal: isHorizontalChart(state.layers) });
@@ -490,15 +490,24 @@ export const getAnnotationsConfiguration = ({
             values: { groupLabel },
           }
         ),
-        accessors: getAnnotationsAccessorColorConfig(layer),
+        accessors: getAnnotationsAccessorColorConfig(layer).map((config) =>
+          hasDateHistogram
+            ? config
+            : {
+                ...config,
+                invalid: true,
+                invalidMessage: i18n.translate(
+                  'xpack.lens.xyChart.addAnnotationsLayerLabelDisabledHelp',
+                  {
+                    defaultMessage:
+                      'Annotations require a time based chart to work. Add a date histogram.',
+                  }
+                ),
+              }
+        ),
         dataTestSubj: 'lnsXY_xAnnotationsPanel',
-        invalid: !hasDateHistogram,
-        invalidMessage: i18n.translate('xpack.lens.xyChart.addAnnotationsLayerLabelDisabledHelp', {
-          defaultMessage: 'Annotations require a time based chart to work. Add a date histogram.',
-        }),
         requiredMinDimensionCount: 0,
         supportsMoreColumns: true,
-        supportFieldFormat: false,
         enableDimensionEditor: true,
         filterOperations: () => false,
         labels: emptyButtonLabels,

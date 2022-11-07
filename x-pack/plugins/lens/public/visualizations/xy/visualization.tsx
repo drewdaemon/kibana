@@ -649,7 +649,13 @@ export const getXyVisualization = ({
     ),
 
   validateColumn(state, frame, layerId, columnId, group) {
-    const { invalid, invalidMessages } = validateColumn(state, frame, layerId, columnId, group);
+    const { invalid, invalidMessages } = validateColumn(
+      state,
+      frame,
+      layerId,
+      columnId,
+      group?.accessors
+    );
     if (!invalid) {
       return { invalid };
     }

@@ -15,8 +15,8 @@ import { validateQuery } from '../../shared_components';
 import type {
   FramePublicAPI,
   DatasourcePublicAPI,
-  VisualizationDimensionGroupConfig,
   VisualizeEditorContext,
+  AccessorConfig,
 } from '../../types';
 import {
   visualizationTypes,
@@ -182,12 +182,13 @@ export function validateColumn(
   frame: Pick<FramePublicAPI, 'dataViews'>,
   layerId: string,
   columnId: string,
-  group?: VisualizationDimensionGroupConfig
+  accessors?: AccessorConfig[]
 ): { invalid: boolean; invalidMessages?: string[] } {
-  if (group?.invalid) {
+  const thisAccessor = accessors?.find((accessor) => accessor.columnId === columnId);
+  if (thisAccessor?.invalid) {
     return {
       invalid: true,
-      invalidMessages: group.invalidMessage ? [group.invalidMessage] : undefined,
+      invalidMessages: thisAccessor.invalidMessage ? [thisAccessor.invalidMessage] : undefined,
     };
   }
   const validColumn = { invalid: false };

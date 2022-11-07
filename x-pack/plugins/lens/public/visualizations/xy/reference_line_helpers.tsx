@@ -402,7 +402,7 @@ export const getReferenceConfiguration = ({
   frame: Pick<FramePublicAPI, 'activeData' | 'datasourceLayers'>;
   layer: XYReferenceLineLayerConfig;
   sortedAccessors: string[];
-}) => {
+}): ReturnType<Visualization['getConfiguration']> => {
   const idToIndex = sortedAccessors.reduce<Record<string, number>>((memo, id, index) => {
     memo[id] = index;
     return memo;
@@ -474,7 +474,6 @@ export const getReferenceConfiguration = ({
           defaultMessage: 'Placement',
         }),
       },
-      supportFieldFormat: false,
       dataTestSubj,
       invalid: !valid,
       invalidMessage:

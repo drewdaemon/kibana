@@ -574,8 +574,8 @@ export function LayerPanel(
                                       groupId: group.groupId,
                                       filterOperations: group.filterOperations,
                                       hideTooltip,
-                                      invalid: group.invalid,
-                                      invalidMessage: group.invalidMessage,
+                                      invalid: accessorConfig.invalid,
+                                      invalidMessage: accessorConfig.invalidMessage,
                                       indexPatterns: dataViews.indexPatterns,
                                       existingFields: dataViews.existingFields,
                                     }}

@@ -292,7 +292,17 @@ export const getPieVisualization = ({
     };
 
     const getMetricGroupConfig = (): VisualizationDimensionGroupConfig => {
-      const accessors = layer.metrics.map((columnId) => ({ columnId }));
+      const accessors = layer.metrics.map((columnId, index) => ({
+        columnId,
+        ...(index > 0 && !layer.allowMultipleMetrics
+          ? {
+              invalid: true,
+              invalidMessage: i18n.translate('xpack.lens.pie.onlyOneMetricAllowed', {
+                defaultMessage: 'Only one metric is allowed.',
+              }),
+            }
+          : {}),
+      }));
       applyPaletteToAccessorConfigs(accessors, layer, state.palette, paletteService);
 
       const groupLabel = layer.allowMultipleMetrics
