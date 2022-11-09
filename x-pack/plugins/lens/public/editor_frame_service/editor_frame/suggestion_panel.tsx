@@ -526,7 +526,13 @@ function getPreviewExpression(
     const datasourceExpressionsByLayers = getDatasourceExpressionsByLayers(
       datasources,
       datasourceStates,
-      frame.dataViews.indexPatterns
+      frame.dataViews.indexPatterns,
+      (layerId) =>
+        visualization.getConfiguration({
+          layerId,
+          state: visualizableState.visualizationState,
+          frame,
+        }).groups
     );
 
     return visualization.toPreviewExpression(

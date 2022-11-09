@@ -66,6 +66,26 @@ const numberMetricOperations = (op: OperationMetadata) =>
 export const isCollapsed = (columnId: string, layer: PieLayerState) =>
   Boolean(layer.collapseFns?.[columnId]);
 
+export const reportExtraDimensions = (
+  columnIds: string[],
+  layer: PieLayerState,
+  maxDimensions: number
+) => {
+  const report: boolean[] = [];
+
+  let accessorCount = 0;
+  for (const id of columnIds) {
+    if (isCollapsed(id, layer)) {
+      report.push(false);
+    } else {
+      accessorCount++;
+      report.push(accessorCount > maxDimensions);
+    }
+  }
+
+  return report;
+};
+
 export const hasMultipleValidMetrics = (layer: PieLayerState) =>
   layer.metrics.length > 1 && layer.allowMultipleMetrics;
 
@@ -166,22 +186,20 @@ export const getPieVisualization = ({
         0
       );
 
-      let accessorCount = 0;
-      const accessors: AccessorConfig[] = originalOrder.map((accessor) => {
-        const collapsed = isCollapsed(accessor, layer);
+      const accessors: AccessorConfig[] = originalOrder.map((accessor) => ({
+        columnId: accessor,
+        triggerIcon: isCollapsed(accessor, layer) ? ('aggregate' as const) : undefined,
+      }));
 
-        if (!collapsed) {
-          accessorCount++;
-        }
-
-        return {
-          columnId: accessor,
-          triggerIcon: collapsed ? ('aggregate' as const) : undefined,
-          invalid: !collapsed && accessorCount > maxBuckets,
-          invalidMessage: i18n.translate('xpack.lens.pie.tooManyBucketDimensions', {
-            defaultMessage: 'You have too many dimensions. This one is not currently in use.',
-          }),
-        };
+      reportExtraDimensions(originalOrder, layer, maxBuckets).forEach((extra, index) => {
+        if (extra)
+          accessors[index] = {
+            ...accessors[index],
+            invalid: true,
+            invalidMessage: i18n.translate('xpack.lens.pie.tooManyBucketDimensions', {
+              defaultMessage: 'You have too many dimensions. This one is not currently in use.',
+            }),
+          };
       });
 
       if (accessors.length) {
@@ -206,7 +224,6 @@ export const getPieVisualization = ({
         filterOperations: bucketedOperations,
         fakeFinalAccessor,
         supportsMoreColumns: totalNonCollapsedAccessors < maxBuckets,
-        dimensionsTooMany: totalNonCollapsedAccessors - maxBuckets,
       };
 
       switch (state.shape) {
@@ -233,7 +250,6 @@ export const getPieVisualization = ({
               defaultMessage: 'Vertical axis',
             }),
             supportsMoreColumns: totalNonCollapsedAccessors === 0,
-            dimensionsTooMany: totalNonCollapsedAccessors - 1,
             dataTestSubj: 'lnsPie_verticalAxisDimensionPanel',
           };
         default:
@@ -253,10 +269,31 @@ export const getPieVisualization = ({
 
     const getSecondaryGroupConfig = (): VisualizationDimensionGroupConfig | undefined => {
       const originalSecondaryOrder = getSortedGroups(datasource, layer, 'secondaryGroups');
-      const accessors = originalSecondaryOrder.map((accessor) => ({
+
+      const totalNonCollapsedAccessors = originalSecondaryOrder.reduce(
+        (total, columnId) => total + (isCollapsed(columnId, layer) ? 0 : 1),
+        0
+      );
+
+      const accessors: AccessorConfig[] = originalSecondaryOrder.map((accessor) => ({
         columnId: accessor,
         triggerIcon: isCollapsed(accessor, layer) ? ('aggregate' as const) : undefined,
       }));
+
+      reportExtraDimensions(
+        originalSecondaryOrder,
+        layer,
+        PartitionChartsMeta[state.shape].maxSecondaryBuckets
+      ).forEach((extra, index) => {
+        if (extra)
+          accessors[index] = {
+            ...accessors[index],
+            invalid: true,
+            invalidMessage: i18n.translate('xpack.lens.pie.tooManyBucketDimensions', {
+              defaultMessage: 'You have too many dimensions. This one is not currently in use.',
+            }),
+          };
+      });
 
       const secondaryGroupConfigBaseProps = {
         required: true,
@@ -265,11 +302,6 @@ export const getPieVisualization = ({
         enableDimensionEditor: true,
         filterOperations: bucketedOperations,
       };
-
-      const totalNonCollapsedAccessors = accessors.reduce(
-        (total, { columnId }) => total + (isCollapsed(columnId, layer) ? 0 : 1),
-        0
-      );
 
       switch (state.shape) {
         case 'mosaic':
@@ -285,7 +317,6 @@ export const getPieVisualization = ({
               }
             ),
             supportsMoreColumns: totalNonCollapsedAccessors === 0,
-            dimensionsTooMany: totalNonCollapsedAccessors - 1,
             dataTestSubj: 'lnsPie_horizontalAxisDimensionPanel',
           };
         default:
@@ -328,7 +359,6 @@ export const getPieVisualization = ({
         supportsMoreColumns: layer.metrics.length === 0 || Boolean(layer.allowMultipleMetrics),
         filterOperations: numberMetricOperations,
         requiredMinDimensionCount: 1,
-        dimensionsTooMany: layer.allowMultipleMetrics ? 0 : layer.metrics.length - 1,
         dataTestSubj: 'lnsPie_sizeByDimensionPanel',
         enableDimensionEditor: true,
       };

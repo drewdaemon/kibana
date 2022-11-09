@@ -13,6 +13,7 @@ import { difference } from 'lodash';
 import type { DataViewsContract, DataViewSpec } from '@kbn/data-views-plugin/public';
 import { IStorageWrapper } from '@kbn/kibana-utils-plugin/public';
 import { DataViewPersistableStateService } from '@kbn/data-views-plugin/common';
+import type { DateRange } from '../../../common';
 import {
   Datasource,
   DatasourceLayers,
@@ -391,6 +392,12 @@ export async function persistedStateToExpression(
     { datasourceLayers, dataViews: { indexPatterns } as DataViewsState }
   );
 
+  const framePublicAPI: FramePublicAPI = {
+    dataViews: { indexPatterns } as DataViewsState,
+    datasourceLayers,
+    dateRange: {} as DateRange,
+  };
+
   return {
     ast: buildExpression({
       title,
@@ -400,7 +407,7 @@ export async function persistedStateToExpression(
       datasourceMap,
       datasourceStates,
       datasourceLayers,
-      indexPatterns,
+      framePublicAPI,
     }),
     errors: validationResult,
   };

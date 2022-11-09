@@ -53,6 +53,7 @@ const updatePositionIndex = (currentId: string, newIndex: number) => {
 function getExpressionForLayer(
   layer: FormBasedLayer,
   indexPattern: IndexPattern,
+  isVisDimensionInvalid: (columnId: string) => boolean,
   uiSettings: IUiSettingsClient,
   searchSessionId?: string
 ): ExpressionAstExpression | null {
@@ -112,7 +113,9 @@ function getExpressionForLayer(
     }
   });
 
-  const columnEntries = columnOrder.map((colId) => [colId, columns[colId]] as const);
+  const columnEntries = columnOrder
+    .filter((id) => !isVisDimensionInvalid(id))
+    .map((colId) => [colId, columns[colId]] as const);
 
   const [referenceEntries, esAggEntries] = partition(
     columnEntries,
@@ -445,6 +448,7 @@ export function toExpression(
   state: FormBasedPrivateState,
   layerId: string,
   indexPatterns: IndexPatternMap,
+  isVisDimensionInvalid: (columnId: string) => boolean,
   uiSettings: IUiSettingsClient,
   searchSessionId?: string
 ) {
@@ -452,6 +456,7 @@ export function toExpression(
     return getExpressionForLayer(
       state.layers[layerId],
       indexPatterns[state.layers[layerId].indexPatternId],
+      isVisDimensionInvalid,
       uiSettings,
       searchSessionId
     );

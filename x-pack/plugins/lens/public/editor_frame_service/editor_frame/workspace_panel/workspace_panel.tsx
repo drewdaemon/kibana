@@ -323,7 +323,7 @@ export const InnerWorkspacePanel = React.memo(function InnerWorkspacePanel({
           datasourceMap,
           datasourceStates,
           datasourceLayers,
-          indexPatterns: dataViews.indexPatterns,
+          framePublicAPI,
           searchSessionId,
         });
 
@@ -366,8 +366,8 @@ export const InnerWorkspacePanel = React.memo(function InnerWorkspacePanel({
     datasourceMap,
     datasourceStates,
     datasourceLayers,
-    dataViews.indexPatterns,
     searchSessionId,
+    framePublicAPI,
   ]);
 
   useEffect(() => {

@@ -448,17 +448,6 @@ export function LayerPanel(
                     defaultMessage: 'Requires field',
                   });
                 }
-              } else if (group.dimensionsTooMany && group.dimensionsTooMany > 0) {
-                errorText = i18n.translate(
-                  'xpack.lens.editorFrame.tooManyDimensionsSingularWarningLabel',
-                  {
-                    defaultMessage:
-                      'Please remove {dimensionsTooMany, plural, one {a dimension} other {{dimensionsTooMany} dimensions}}',
-                    values: {
-                      dimensionsTooMany: group.dimensionsTooMany,
-                    },
-                  }
-                );
               }
             }
             const isOptional = !group.requiredMinDimensionCount && !group.suggestedValue;

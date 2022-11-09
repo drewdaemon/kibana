@@ -29,6 +29,7 @@ interface PartitionChartMeta {
   label: string;
   groupLabel: string;
   maxBuckets: number;
+  maxSecondaryBuckets: number;
   isExperimental?: boolean;
   toolbarPopover: {
     isDisabled?: boolean;
@@ -147,6 +148,7 @@ export const PartitionChartsMeta: Record<PieChartType, PartitionChartMeta> = {
     }),
     groupLabel,
     maxBuckets: 3,
+    maxSecondaryBuckets: 0,
     toolbarPopover: {
       categoryOptions,
       numberOptions,
@@ -163,6 +165,7 @@ export const PartitionChartsMeta: Record<PieChartType, PartitionChartMeta> = {
     }),
     groupLabel,
     maxBuckets: 3,
+    maxSecondaryBuckets: 0,
     toolbarPopover: {
       categoryOptions,
       numberOptions,
@@ -178,6 +181,7 @@ export const PartitionChartsMeta: Record<PieChartType, PartitionChartMeta> = {
     }),
     groupLabel,
     maxBuckets: 2,
+    maxSecondaryBuckets: 0,
     toolbarPopover: {
       categoryOptions: categoryOptionsTreemap,
       numberOptions,
@@ -192,7 +196,8 @@ export const PartitionChartsMeta: Record<PieChartType, PartitionChartMeta> = {
       defaultMessage: 'Mosaic',
     }),
     groupLabel,
-    maxBuckets: 2,
+    maxBuckets: 1,
+    maxSecondaryBuckets: 1,
     isExperimental: true,
     toolbarPopover: {
       categoryOptions: [],
@@ -209,6 +214,7 @@ export const PartitionChartsMeta: Record<PieChartType, PartitionChartMeta> = {
     }),
     groupLabel,
     maxBuckets: 1,
+    maxSecondaryBuckets: 0,
     isExperimental: true,
     toolbarPopover: {
       isDisabled: true,

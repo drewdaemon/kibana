@@ -23,7 +23,11 @@ import {
   LegendDisplay,
 } from '../../../common';
 import { getDefaultVisualValuesForLayer } from '../../shared_components/datasource_default_values';
-import { getMultiMetricsBucketDimensionCount, isCollapsed } from './visualization';
+import {
+  getMultiMetricsBucketDimensionCount,
+  isCollapsed,
+  reportExtraDimensions,
+} from './visualization';
 import { PartitionChartsMeta } from './partition_charts_meta';
 
 interface Attributes {
@@ -142,14 +146,10 @@ const generateCommonArguments: GenerateExpressionAstArguments = (
   datasourceLayers,
   paletteService
 ) => {
-  const maxBuckets =
-    PartitionChartsMeta[state.shape].maxBuckets - getMultiMetricsBucketDimensionCount(layer);
-
   return {
     labels: generateCommonLabelsAstArgs(state, attributes, layer),
     buckets: operations
       .filter(({ columnId }) => !isCollapsed(columnId, layer))
-      .slice(0, maxBuckets)
       .map(({ columnId }) => columnId)
       .map(prepareDimension),
     metrics: (layer.allowMultipleMetrics ? layer.metrics : [layer.metrics[0]]).map(
@@ -270,6 +270,12 @@ const generateExprAst: GenerateExpressionAstFunction = (state, ...restArgs) =>
     [PieChartTypes.WAFFLE]: () => generateWaffleVisAst(state, ...restArgs),
   }[state.shape]());
 
+const removeExtraAccessors = (accessors: string[], layer: PieLayerState, maxCount: number) => {
+  const extraReport = reportExtraDimensions(accessors, layer, maxCount);
+
+  return accessors.filter((_, index) => !extraReport[index]);
+};
+
 function expressionHelper(
   state: PieVisualizationState,
   datasourceLayers: DatasourceLayers,
@@ -280,14 +286,19 @@ function expressionHelper(
   const layer = state.layers[0];
   const datasource = datasourceLayers[layer.layerId];
 
-  const groups = Array.from(
-    new Set(
-      [
-        getSortedGroups(datasource, layer, 'primaryGroups'),
-        layer.secondaryGroups ? getSortedGroups(datasource, layer, 'secondaryGroups') : [],
-      ].flat()
-    )
+  const primaryGroups = removeExtraAccessors(
+    getSortedGroups(datasource, layer, 'primaryGroups'),
+    layer,
+    PartitionChartsMeta[state.shape].maxBuckets - getMultiMetricsBucketDimensionCount(layer)
   );
+
+  const secondaryGroups = removeExtraAccessors(
+    layer.secondaryGroups ? getSortedGroups(datasource, layer, 'secondaryGroups') : [],
+    layer,
+    PartitionChartsMeta[state.shape].maxBuckets
+  );
+
+  const groups = [...primaryGroups, ...secondaryGroups];
 
   const operations = groups
     .map((columnId) => ({

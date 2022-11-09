@@ -208,14 +208,10 @@ describe('pie_visualization', () => {
           Array [
             Object {
               "columnId": "1",
-              "invalid": false,
-              "invalidMessage": "You have too many dimensions. This one is not currently in use.",
               "triggerIcon": "aggregate",
             },
             Object {
               "columnId": "2",
-              "invalid": false,
-              "invalidMessage": "You have too many dimensions. This one is not currently in use.",
               "palette": Array [
                 "red",
                 "black",

@@ -368,6 +368,7 @@ export interface Datasource<T = unknown, P = unknown> {
     state: T,
     layerId: string,
     indexPatterns: IndexPatternMap,
+    isVisDimensionInvalid: (columnId: string) => boolean,
     searchSessionId?: string
   ) => ExpressionAstExpression | string | null;
 
@@ -782,8 +783,6 @@ export type VisualizationDimensionGroupConfig = SharedDimensionProps & {
     label: string;
   };
   supportsMoreColumns: boolean;
-  dimensionsTooMany?: number;
-  /** If required, a warning will appear if accessors are empty */
   requiredMinDimensionCount?: number;
   dataTestSubj?: string;
   prioritizedOperation?: string;

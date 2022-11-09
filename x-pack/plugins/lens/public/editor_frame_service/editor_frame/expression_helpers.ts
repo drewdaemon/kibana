@@ -6,12 +6,20 @@
  */
 import { Ast, fromExpression } from '@kbn/interpreter';
 import { DatasourceStates } from '../../state_management';
-import { Visualization, DatasourceMap, DatasourceLayers, IndexPatternMap } from '../../types';
+import {
+  Visualization,
+  DatasourceMap,
+  DatasourceLayers,
+  IndexPatternMap,
+  VisualizationDimensionGroupConfig,
+  FramePublicAPI,
+} from '../../types';
 
 export function getDatasourceExpressionsByLayers(
   datasourceMap: DatasourceMap,
   datasourceStates: DatasourceStates,
   indexPatterns: IndexPatternMap,
+  getVisGroups: (layerId: string) => VisualizationDimensionGroupConfig[],
   searchSessionId?: string
 ): null | Record<string, Ast> {
   const datasourceExpressions: Array<[string, Ast | string]> = [];
@@ -25,7 +33,22 @@ export function getDatasourceExpressionsByLayers(
     const layers = datasource.getLayers(state);
 
     layers.forEach((layerId) => {
-      const result = datasource.toExpression(state, layerId, indexPatterns, searchSessionId);
+      const invalidColumns = new Set(
+        getVisGroups(layerId)
+          .map((group) => group.accessors)
+          .flat()
+          .filter((accessor) => accessor.invalid)
+          .map((accessor) => accessor.columnId)
+      );
+
+      const result = datasource.toExpression(
+        state,
+        layerId,
+        indexPatterns,
+        (columnId) => invalidColumns.has(columnId),
+        searchSessionId
+      );
+
       if (result) {
         datasourceExpressions.push([layerId, result]);
       }
@@ -53,7 +76,7 @@ export function buildExpression({
   datasourceLayers,
   title,
   description,
-  indexPatterns,
+  framePublicAPI,
   searchSessionId,
 }: {
   title?: string;
@@ -63,7 +86,7 @@ export function buildExpression({
   datasourceMap: DatasourceMap;
   datasourceStates: DatasourceStates;
   datasourceLayers: DatasourceLayers;
-  indexPatterns: IndexPatternMap;
+  framePublicAPI: FramePublicAPI;
   searchSessionId?: string;
 }): Ast | null {
   if (visualization === null) {
@@ -73,7 +96,13 @@ export function buildExpression({
   const datasourceExpressionsByLayers = getDatasourceExpressionsByLayers(
     datasourceMap,
     datasourceStates,
-    indexPatterns,
+    framePublicAPI.dataViews.indexPatterns,
+    (layerId) =>
+      visualization.getConfiguration({
+        layerId,
+        frame: framePublicAPI,
+        state: visualizationState,
+      }).groups,
     searchSessionId
   );
 

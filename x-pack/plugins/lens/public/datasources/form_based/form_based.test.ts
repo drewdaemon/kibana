@@ -41,7 +41,7 @@ import {
 } from './operations';
 import { createMockedFullReference } from './operations/mocks';
 import { cloneDeep } from 'lodash';
-import { DatatableColumn } from '@kbn/expressions-plugin/common';
+import { DatatableColumn, ExpressionAstExpression } from '@kbn/expressions-plugin/common';
 import { createMockFramePublicAPI } from '../../mocks';
 
 jest.mock('./loader');
@@ -316,7 +316,7 @@ describe('IndexPattern Data Source', () => {
     it('should generate an empty expression when no columns are selected', async () => {
       const state = FormBasedDatasource.initialize();
       expect(
-        FormBasedDatasource.toExpression(state, 'first', indexPatterns, 'testing-seed')
+        FormBasedDatasource.toExpression(state, 'first', indexPatterns, () => false, 'testing-seed')
       ).toEqual(null);
     });
 
@@ -341,7 +341,13 @@ describe('IndexPattern Data Source', () => {
         },
       };
       expect(
-        FormBasedDatasource.toExpression(queryBaseState, 'first', indexPatterns, 'testing-seed')
+        FormBasedDatasource.toExpression(
+          queryBaseState,
+          'first',
+          indexPatterns,
+          () => false,
+          'testing-seed'
+        )
       ).toEqual({
         chain: [
           {
@@ -390,7 +396,13 @@ describe('IndexPattern Data Source', () => {
       };
 
       expect(
-        FormBasedDatasource.toExpression(queryBaseState, 'first', indexPatterns, 'testing-seed')
+        FormBasedDatasource.toExpression(
+          queryBaseState,
+          'first',
+          indexPatterns,
+          () => false,
+          'testing-seed'
+        )
       ).toMatchInlineSnapshot(`
         Object {
           "chain": Array [
@@ -520,6 +532,154 @@ describe('IndexPattern Data Source', () => {
       `);
     });
 
+    it('should ignore columns marked as invalid', async () => {
+      const queryBaseState: FormBasedPrivateState = {
+        currentIndexPatternId: '1',
+        layers: {
+          first: {
+            indexPatternId: '1',
+            columnOrder: ['col1', 'col2'],
+            columns: {
+              col1: {
+                label: 'Count of records',
+                dataType: 'number',
+                isBucketed: false,
+                sourceField: '___records___',
+                operationType: 'count',
+              },
+              col2: {
+                label: 'Date',
+                dataType: 'date',
+                isBucketed: true,
+                operationType: 'date_histogram',
+                sourceField: 'timestamp',
+                params: {
+                  interval: '1d',
+                },
+              } as DateHistogramIndexPatternColumn,
+            },
+          },
+        },
+      };
+
+      const ast = FormBasedDatasource.toExpression(
+        queryBaseState,
+        'first',
+        indexPatterns,
+        jest.fn().mockReturnValueOnce(true).mockReturnValueOnce(false),
+        'testing-seed'
+      ) as ExpressionAstExpression;
+
+      expect(ast.chain[1].arguments.aggs).toHaveLength(1);
+
+      expect(ast).toMatchInlineSnapshot(`
+        Object {
+          "chain": Array [
+            Object {
+              "arguments": Object {},
+              "function": "kibana",
+              "type": "function",
+            },
+            Object {
+              "arguments": Object {
+                "aggs": Array [
+                  Object {
+                    "chain": Array [
+                      Object {
+                        "arguments": Object {
+                          "drop_partials": Array [
+                            false,
+                          ],
+                          "enabled": Array [
+                            true,
+                          ],
+                          "extended_bounds": Array [
+                            Object {
+                              "chain": Array [
+                                Object {
+                                  "arguments": Object {},
+                                  "function": "extendedBounds",
+                                  "type": "function",
+                                },
+                              ],
+                              "type": "expression",
+                            },
+                          ],
+                          "field": Array [
+                            "timestamp",
+                          ],
+                          "id": Array [
+                            "0",
+                          ],
+                          "interval": Array [
+                            "1d",
+                          ],
+                          "min_doc_count": Array [
+                            1,
+                          ],
+                          "schema": Array [
+                            "segment",
+                          ],
+                          "useNormalizedEsInterval": Array [
+                            true,
+                          ],
+                        },
+                        "function": "aggDateHistogram",
+                        "type": "function",
+                      },
+                    ],
+                    "type": "expression",
+                  },
+                ],
+                "index": Array [
+                  Object {
+                    "chain": Array [
+                      Object {
+                        "arguments": Object {
+                          "id": Array [
+                            "1",
+                          ],
+                        },
+                        "function": "indexPatternLoad",
+                        "type": "function",
+                      },
+                    ],
+                    "type": "expression",
+                  },
+                ],
+                "metricsAtAllLevels": Array [
+                  false,
+                ],
+                "partialRows": Array [
+                  false,
+                ],
+                "probability": Array [
+                  1,
+                ],
+                "samplerSeed": Array [
+                  1889181588,
+                ],
+                "timeFields": Array [
+                  "timestamp",
+                ],
+              },
+              "function": "esaggs",
+              "type": "function",
+            },
+            Object {
+              "arguments": Object {
+                "idMap": Array [
+                  "{\\"col-0-0\\":[{\\"label\\":\\"Date\\",\\"dataType\\":\\"date\\",\\"isBucketed\\":true,\\"operationType\\":\\"date_histogram\\",\\"sourceField\\":\\"timestamp\\",\\"params\\":{\\"interval\\":\\"1d\\"},\\"id\\":\\"col2\\"}]}",
+                ],
+              },
+              "function": "lens_map_to_columns",
+              "type": "function",
+            },
+          ],
+          "type": "expression",
+        }
+      `);
+    });
     it('should put all time fields used in date_histograms to the esaggs timeFields parameter if not ignoring global time range', async () => {
       const queryBaseState: FormBasedPrivateState = {
         currentIndexPatternId: '1',
@@ -575,6 +735,7 @@ describe('IndexPattern Data Source', () => {
         queryBaseState,
         'first',
         indexPatterns,
+        () => false,
         'testing-seed'
       ) as Ast;
       expect(ast.chain[1].arguments.timeFields).toEqual(['timestamp', 'another_datefield']);
@@ -615,6 +776,7 @@ describe('IndexPattern Data Source', () => {
         queryBaseState,
         'first',
         indexPatterns,
+        () => false,
         'testing-seed'
       ) as Ast;
       expect((ast.chain[1].arguments.aggs[1] as Ast).chain[0].arguments.timeShift).toEqual(['1d']);
@@ -827,6 +989,7 @@ describe('IndexPattern Data Source', () => {
         queryBaseState,
         'first',
         indexPatterns,
+        () => false,
         'testing-seed'
       ) as Ast;
       const count = (ast.chain[1].arguments.aggs[1] as Ast).chain[0];
@@ -896,6 +1059,7 @@ describe('IndexPattern Data Source', () => {
         queryBaseState,
         'first',
         indexPatterns,
+        () => false,
         'testing-seed'
       ) as Ast;
       expect(ast.chain[1].arguments.aggs[0]).toMatchInlineSnapshot(`
@@ -1025,6 +1189,7 @@ describe('IndexPattern Data Source', () => {
         queryBaseState,
         'first',
         indexPatterns,
+        () => false,
         'testing-seed'
       ) as Ast;
       const timeScaleCalls = ast.chain.filter((fn) => fn.function === 'lens_time_scale');
@@ -1095,6 +1260,7 @@ describe('IndexPattern Data Source', () => {
         queryBaseState,
         'first',
         indexPatterns,
+        () => false,
         'testing-seed'
       ) as Ast;
       const filteredMetricAgg = (ast.chain[1].arguments.aggs[0] as Ast).chain[0].arguments;
@@ -1151,6 +1317,7 @@ describe('IndexPattern Data Source', () => {
         queryBaseState,
         'first',
         indexPatterns,
+        () => false,
         'testing-seed'
       ) as Ast;
       const formatIndex = ast.chain.findIndex((fn) => fn.function === 'lens_format_column');
@@ -1204,6 +1371,7 @@ describe('IndexPattern Data Source', () => {
         queryBaseState,
         'first',
         indexPatterns,
+        () => false,
         'testing-seed'
       ) as Ast;
       expect(ast.chain[1].arguments.metricsAtAllLevels).toEqual([false]);
@@ -1248,6 +1416,7 @@ describe('IndexPattern Data Source', () => {
         queryBaseState,
         'first',
         indexPatterns,
+        () => false,
         'testing-seed'
       ) as Ast;
       expect(ast.chain[1].arguments.timeFields).toEqual(['timestamp']);
@@ -1306,7 +1475,13 @@ describe('IndexPattern Data Source', () => {
 
         const optimizeMock = jest.spyOn(operationDefinitionMap.percentile, 'optimizeEsAggs');
 
-        FormBasedDatasource.toExpression(queryBaseState, 'first', indexPatterns, 'testing-seed');
+        FormBasedDatasource.toExpression(
+          queryBaseState,
+          'first',
+          indexPatterns,
+          () => false,
+          'testing-seed'
+        );
 
         expect(operationDefinitionMap.percentile.optimizeEsAggs).toHaveBeenCalledTimes(1);
 
@@ -1378,6 +1553,7 @@ describe('IndexPattern Data Source', () => {
           queryBaseState,
           'first',
           indexPatterns,
+          () => false,
           'testing-seed'
         ) as Ast;
 
@@ -1447,6 +1623,7 @@ describe('IndexPattern Data Source', () => {
           queryBaseState,
           'first',
           indexPatterns,
+          () => false,
           'testing-seed'
         ) as Ast;
 
@@ -1557,6 +1734,7 @@ describe('IndexPattern Data Source', () => {
           queryBaseState,
           'first',
           indexPatterns,
+          () => false,
           'testing-seed'
         ) as Ast;
         // @ts-expect-error we can't isolate just the reference type
@@ -1595,6 +1773,7 @@ describe('IndexPattern Data Source', () => {
           queryBaseState,
           'first',
           indexPatterns,
+          () => false,
           'testing-seed'
         ) as Ast;
 
@@ -1687,6 +1866,7 @@ describe('IndexPattern Data Source', () => {
           queryBaseState,
           'first',
           indexPatterns,
+          () => false,
           'testing-seed'
         ) as Ast;
         const chainLength = ast.chain.length;
