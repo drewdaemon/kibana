@@ -360,7 +360,6 @@ export const getPieVisualization = ({
         filterOperations: numberMetricOperations,
         requiredMinDimensionCount: 1,
         dataTestSubj: 'lnsPie_sizeByDimensionPanel',
-        enableDimensionEditor: true,
       };
     };
 
