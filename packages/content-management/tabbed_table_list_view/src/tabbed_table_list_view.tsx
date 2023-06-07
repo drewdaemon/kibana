@@ -9,7 +9,7 @@
 import { EuiTab, EuiTabs } from '@elastic/eui';
 import { css } from '@emotion/react';
 import { KibanaPageTemplate } from '@kbn/shared-ux-page-kibana-template';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import type {
   TableListViewTableProps,
   UserContentCommonSchema,
@@ -22,9 +22,7 @@ export type TableListTabParentProps<T extends UserContentCommonSchema = UserCont
 export interface TableListTab<T extends UserContentCommonSchema = UserContentCommonSchema> {
   title: string;
   id: string;
-  getTableList: (
-    propsFromParent: TableListTabParentProps<T>
-  ) => Promise<React.ReactNode> | React.ReactNode;
+  getTableList: () => Promise<React.ReactNode> | React.ReactNode;
 }
 
 type TabbedTableListViewProps = Pick<
@@ -95,6 +93,71 @@ export const TabbedTableListView = ({
         {/* Any children passed to the component */}
         {children}
 
+        {tableList}
+      </KibanaPageTemplate.Section>
+    </KibanaPageTemplate>
+  );
+};
+
+interface TabProps {
+  title: string;
+  onClick: () => void;
+  active?: boolean;
+  loadContent: () => Promise<React.ReactNode> | React.ReactNode;
+}
+
+export const Tab = (_props: TabProps) => null;
+
+type TabbedTableListViewV2Props = Pick<
+  TableListViewProps<UserContentCommonSchema>,
+  'title' | 'description' | 'headingId' | 'children'
+> & { children: React.ReactElement<TabProps> | Array<React.ReactElement<TabProps>> };
+
+export const TabbedTableListViewV2 = ({
+  title,
+  description,
+  headingId,
+  children,
+}: TabbedTableListViewV2Props) => {
+  const [hasInitialFetchReturned, setHasInitialFetchReturned] = useState(false);
+  const [pageDataTestSubject, setPageDataTestSubject] = useState<string>();
+  const [tableList, setTableList] = useState<React.ReactNode>(null);
+
+  const tabs = useMemo(
+    () => (Array.isArray(children) ? children : [children]).map((child) => child.props),
+    [children]
+  );
+
+  useEffect(() => {
+    const loadTableList = async () => {
+      const activeTab = tabs.find((tab) => tab.active) ?? tabs[0];
+      setTableList(await activeTab.loadContent());
+    };
+
+    loadTableList();
+  }, [tabs]);
+
+  return (
+    <KibanaPageTemplate panelled data-test-subj={pageDataTestSubject}>
+      <KibanaPageTemplate.Header
+        pageTitle={<span id={headingId}>{title}</span>}
+        description={description}
+        data-test-subj="top-nav"
+        css={css`
+          .euiPageHeaderContent {
+            padding-bottom: 0;
+          }
+        `}
+      >
+        <EuiTabs>
+          {tabs.map((tab, index) => (
+            <EuiTab key={index} onClick={tab.onClick} isSelected={tab.active}>
+              {tab.title}
+            </EuiTab>
+          ))}
+        </EuiTabs>
+      </KibanaPageTemplate.Header>
+      <KibanaPageTemplate.Section aria-labelledby={hasInitialFetchReturned ? headingId : undefined}>
         {tableList}
       </KibanaPageTemplate.Section>
     </KibanaPageTemplate>

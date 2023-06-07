@@ -27,7 +27,9 @@ import { useLocation, useParams } from 'react-router-dom';
 import type { SavedObjectReference } from '@kbn/core/public';
 import { useKibana, useExecutionContext } from '@kbn/kibana-react-plugin/public';
 import {
+  Tab,
   TabbedTableListView,
+  TabbedTableListViewV2,
   type TableListTab,
 } from '@kbn/content-management-tabbed-table-list-view';
 import type { OpenContentEditorParams } from '@kbn/content-management-content-editor';
@@ -398,14 +400,16 @@ export const VisualizeListing = () => {
   const { activeTab } = useParams<{ activeTab: string }>();
 
   return (
-    <TabbedTableListView
-      headingId="visualizeListingHeading"
-      title={visualizeLibraryTitle}
-      tabs={tabs}
-      activeTabId={activeTab}
-      changeActiveTab={(id) => {
-        application.navigateToUrl(`#/${id}`);
-      }}
-    />
+    <TabbedTableListViewV2 headingId="visualizeListingHeading" title={visualizeLibraryTitle}>
+      {tabs.map((tab, index) => (
+        <Tab
+          key={index}
+          title={tab.title}
+          onClick={() => application.navigateToUrl(`#/${tab.id}`)}
+          active={tab.id === activeTab}
+          loadContent={tab.getTableList}
+        />
+      ))}
+    </TabbedTableListViewV2>
   );
 };

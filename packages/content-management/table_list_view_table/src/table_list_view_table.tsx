@@ -270,7 +270,7 @@ function TableListViewTableComp<T extends UserContentCommonSchema>({
   refreshListBouncer,
   setPageDataTestSubject,
 }: TableListViewTableProps<T>) {
-  setPageDataTestSubject(`${entityName}LandingPage`);
+  // setPageDataTestSubject(`${entityName}LandingPage`); TODO reenable
 
   if (!getDetailViewLink && !onClickTitle) {
     throw new Error(
@@ -400,7 +400,7 @@ function TableListViewTableComp<T extends UserContentCommonSchema>({
           },
         });
 
-        onFetchSuccess();
+        // onFetchSuccess(); TODO - reenable
       }
     } catch (err) {
       dispatch({

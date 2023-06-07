@@ -6,6 +6,6 @@
  * Side Public License, v 1.
  */
 
-export { TabbedTableListView, type TableListTab } from './src';
+export { TabbedTableListView, TabbedTableListViewV2, Tab, type TableListTab } from './src';
 
 export type { UserContentCommonSchema } from '@kbn/content-management-table-list-view-table';

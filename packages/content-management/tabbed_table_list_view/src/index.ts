@@ -6,4 +6,9 @@
  * Side Public License, v 1.
  */
 
-export { TabbedTableListView, type TableListTab } from './tabbed_table_list_view';
+export {
+  TabbedTableListView,
+  TabbedTableListViewV2,
+  Tab,
+  type TableListTab,
+} from './tabbed_table_list_view';
