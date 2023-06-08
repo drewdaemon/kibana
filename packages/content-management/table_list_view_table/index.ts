@@ -7,18 +7,12 @@
  */
 
 export {
-  TabbedTableListView,
   TableListViewTable,
+  TableListViewTableContext,
   TableListViewProvider,
   TableListViewKibanaProvider,
 } from './src';
 
-export type {
-  UserContentCommonSchema,
-  TableListViewTableProps,
-  TableListTab,
-  TableListTabParentProps,
-  RowActions,
-} from './src';
+export type { UserContentCommonSchema, TableListViewTableProps, RowActions } from './src';
 
 export type { TableListViewKibanaDependencies } from './src/services';

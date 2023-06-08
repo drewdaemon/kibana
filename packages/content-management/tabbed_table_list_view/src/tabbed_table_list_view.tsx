@@ -10,7 +10,8 @@ import { EuiTab, EuiTabs } from '@elastic/eui';
 import { css } from '@emotion/react';
 import { KibanaPageTemplate } from '@kbn/shared-ux-page-kibana-template';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import type {
+import {
+  TableListViewTableContext,
   TableListViewTableProps,
   UserContentCommonSchema,
 } from '@kbn/content-management-table-list-view-table';
@@ -137,6 +138,18 @@ export const TabbedTableListViewV2 = ({
     loadTableList();
   }, [tabs]);
 
+  const tableContextValue = useMemo(
+    () => ({
+      onTableDataFetched: () => {
+        if (!hasInitialFetchReturned) {
+          setHasInitialFetchReturned(true);
+        }
+      },
+      setPageDataTestSubject,
+    }),
+    [hasInitialFetchReturned]
+  );
+
   return (
     <KibanaPageTemplate panelled data-test-subj={pageDataTestSubject}>
       <KibanaPageTemplate.Header
@@ -158,7 +171,9 @@ export const TabbedTableListViewV2 = ({
         </EuiTabs>
       </KibanaPageTemplate.Header>
       <KibanaPageTemplate.Section aria-labelledby={hasInitialFetchReturned ? headingId : undefined}>
-        {tableList}
+        <TableListViewTableContext.Provider value={tableContextValue}>
+          {tableList}
+        </TableListViewTableContext.Provider>
       </KibanaPageTemplate.Section>
     </KibanaPageTemplate>
   );

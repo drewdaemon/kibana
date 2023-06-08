@@ -6,10 +6,10 @@
  * Side Public License, v 1.
  */
 
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useContext, useState } from 'react';
 import {
   TableListViewTable,
-  TableListTabParentProps,
+  TableListViewTableContext,
 } from '@kbn/content-management-table-list-view-table';
 import { i18n } from '@kbn/i18n';
 import type { IUiSettingsClient } from '@kbn/core-ui-settings-browser';
@@ -30,7 +30,6 @@ export const EventAnnotationGroupTableList = ({
   eventAnnotationService,
   visualizeCapabilities,
   savedObjectsTagging,
-  parentProps,
   dataViews,
   createDataView,
   queryInputServices,
@@ -39,11 +38,14 @@ export const EventAnnotationGroupTableList = ({
   eventAnnotationService: EventAnnotationServiceType;
   visualizeCapabilities: Record<string, boolean | Record<string, boolean>>;
   savedObjectsTagging: SavedObjectsTaggingApi;
-  parentProps: TableListTabParentProps;
   dataViews: DataView[];
   createDataView: (spec: DataViewSpec) => Promise<DataView>;
   queryInputServices: QueryInputServices;
 }) => {
+  const context = useContext(TableListViewTableContext);
+
+  console.log('context from EventAnnotationGroupTableList', context);
+
   const listingLimit = uiSettings.get(SAVED_OBJECTS_LIMIT_SETTING);
   const initialPageSize = uiSettings.get(SAVED_OBJECTS_PER_PAGE_SETTING);
 
@@ -137,7 +139,6 @@ export const EventAnnotationGroupTableList = ({
           defaultMessage: 'annotation groups',
         })}
         onClickTitle={editItem}
-        {...parentProps}
       />
       {flyout}
     </>

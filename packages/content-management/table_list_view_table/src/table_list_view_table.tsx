@@ -6,7 +6,15 @@
  * Side Public License, v 1.
  */
 
-import React, { useReducer, useCallback, useEffect, useRef, useMemo } from 'react';
+import React, {
+  useReducer,
+  useCallback,
+  useEffect,
+  useRef,
+  useMemo,
+  createContext,
+  useContext,
+} from 'react';
 import useDebounce from 'react-use/lib/useDebounce';
 import {
   EuiBasicTableColumn,
@@ -110,8 +118,6 @@ export interface TableListViewTableProps<
   // TODO are these used?
   tableCaption: string;
   refreshListBouncer?: boolean;
-  onFetchSuccess: () => void;
-  setPageDataTestSubject: (subject: string) => void;
 }
 
 export interface State<T extends UserContentCommonSchema = UserContentCommonSchema> {
@@ -243,6 +249,13 @@ const tableColumnMetadata = {
   },
 } as const;
 
+interface Context {
+  onTableDataFetched: () => void;
+  setPageDataTestSubject: (subject: string) => void;
+}
+
+export const TableListViewTableContext = createContext<Context | undefined>(undefined);
+
 function TableListViewTableComp<T extends UserContentCommonSchema>({
   tableCaption,
   entityName,
@@ -266,11 +279,17 @@ function TableListViewTableComp<T extends UserContentCommonSchema>({
   contentEditor = { enabled: false },
   titleColumnName,
   withoutPageTemplateWrapper,
-  onFetchSuccess,
   refreshListBouncer,
-  setPageDataTestSubject,
 }: TableListViewTableProps<T>) {
-  // setPageDataTestSubject(`${entityName}LandingPage`); TODO reenable
+  const context = useContext(TableListViewTableContext);
+
+  return <p>{context ? 'context found' : 'context NOT found'}</p>;
+
+  useEffect(() => {
+    if (context) {
+      context.setPageDataTestSubject(`${entityName}LandingPage`);
+    }
+  }, []);
 
   if (!getDetailViewLink && !onClickTitle) {
     throw new Error(
@@ -400,7 +419,9 @@ function TableListViewTableComp<T extends UserContentCommonSchema>({
           },
         });
 
-        // onFetchSuccess(); TODO - reenable
+        if (context) {
+          context.onTableDataFetched();
+        }
       }
     } catch (err) {
       dispatch({
@@ -408,7 +429,7 @@ function TableListViewTableComp<T extends UserContentCommonSchema>({
         data: err,
       });
     }
-  }, [searchQueryParser, searchQuery.text, findItems, onFetchSuccess]);
+  }, [searchQueryParser, searchQuery.text, findItems, context]);
 
   useEffect(() => {
     fetchItems();
@@ -986,6 +1007,8 @@ function TableListViewTableComp<T extends UserContentCommonSchema>({
   );
 }
 
-export const TableListViewTable = React.memo(
-  TableListViewTableComp
-) as typeof TableListViewTableComp;
+// export const TableListViewTable = React.memo(
+//   TableListViewTableComp
+// ) as typeof TableListViewTableComp;
+
+export const TableListViewTable = TableListViewTableComp;

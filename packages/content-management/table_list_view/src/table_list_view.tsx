@@ -7,9 +7,10 @@
  */
 
 import { KibanaPageTemplate } from '@kbn/shared-ux-page-kibana-template';
-import React, { ReactNode, useState } from 'react';
+import React, { ReactNode, useMemo, useState } from 'react';
 import {
   TableListViewTable,
+  TableListViewTableContext,
   type TableListViewTableProps,
   type UserContentCommonSchema,
 } from '@kbn/content-management-table-list-view-table';
@@ -81,6 +82,18 @@ export const TableListView = <T extends UserContentCommonSchema>({
   const [hasInitialFetchReturned, setHasInitialFetchReturned] = useState(false);
   const [pageDataTestSubject, setPageDataTestSubject] = useState<string>();
 
+  const tableContextValue = useMemo(
+    () => ({
+      onTableDataFetched: () => {
+        if (!hasInitialFetchReturned) {
+          setHasInitialFetchReturned(true);
+        }
+      },
+      setPageDataTestSubject,
+    }),
+    [hasInitialFetchReturned]
+  );
+
   return (
     <PageTemplate panelled data-test-subj={pageDataTestSubject}>
       <KibanaPageTemplate.Header
@@ -93,35 +106,31 @@ export const TableListView = <T extends UserContentCommonSchema>({
         {/* Any children passed to the component */}
         {children}
 
-        <TableListViewTable
-          tableCaption={title}
-          entityName={entityName}
-          entityNamePlural={entityNamePlural}
-          initialFilter={initialFilter}
-          headingId={headingId}
-          initialPageSize={initialPageSize}
-          listingLimit={listingLimit}
-          urlStateEnabled={urlStateEnabled}
-          customTableColumn={customTableColumn}
-          emptyPrompt={emptyPrompt}
-          findItems={findItems}
-          createItem={createItem}
-          editItem={editItem}
-          deleteItems={deleteItems}
-          rowItemActions={rowItemActions}
-          getDetailViewLink={getDetailViewLink}
-          onClickTitle={onClickTitle}
-          id={listingId}
-          contentEditor={contentEditor}
-          titleColumnName={titleColumnName}
-          withoutPageTemplateWrapper={withoutPageTemplateWrapper}
-          onFetchSuccess={() => {
-            if (!hasInitialFetchReturned) {
-              setHasInitialFetchReturned(true);
-            }
-          }}
-          setPageDataTestSubject={setPageDataTestSubject}
-        />
+        <TableListViewTableContext.Provider value={tableContextValue}>
+          <TableListViewTable
+            tableCaption={title}
+            entityName={entityName}
+            entityNamePlural={entityNamePlural}
+            initialFilter={initialFilter}
+            headingId={headingId}
+            initialPageSize={initialPageSize}
+            listingLimit={listingLimit}
+            urlStateEnabled={urlStateEnabled}
+            customTableColumn={customTableColumn}
+            emptyPrompt={emptyPrompt}
+            findItems={findItems}
+            createItem={createItem}
+            editItem={editItem}
+            deleteItems={deleteItems}
+            rowItemActions={rowItemActions}
+            getDetailViewLink={getDetailViewLink}
+            onClickTitle={onClickTitle}
+            id={listingId}
+            contentEditor={contentEditor}
+            titleColumnName={titleColumnName}
+            withoutPageTemplateWrapper={withoutPageTemplateWrapper}
+          />
+        </TableListViewTableContext.Provider>
       </KibanaPageTemplate.Section>
     </PageTemplate>
   );

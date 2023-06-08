@@ -6,7 +6,7 @@
  * Side Public License, v 1.
  */
 
-export { TableListViewTable } from './table_list_view_table';
+export { TableListViewTable, TableListViewTableContext } from './table_list_view_table';
 
 export type {
   TableListViewTableProps,
