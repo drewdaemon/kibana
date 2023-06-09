@@ -23,7 +23,7 @@
     "@kbn/saved-objects-management-plugin",
     "@kbn/saved-objects-tagging-plugin",
     "@kbn/presentation-util-plugin",
-    "@kbn/content-management-table-list",
+    "@kbn/content-management-table-list-view",
     "@kbn/visualizations-plugin",
     "@kbn/data-views-plugin",
     "@kbn/visualization-ui-components",
@@ -39,6 +39,9 @@
     "@kbn/core-lifecycle-browser",
     "@kbn/kibana-utils-plugin",
     "@kbn/unified-search-plugin",
+    "@kbn/content-management-table-list-view",
+    "@kbn/content-management-table-list-view-table",
+    "@kbn/content-management-tabbed-table-list-view",
   ],
   "exclude": [
     "target/**/*",
