@@ -46,6 +46,7 @@ export interface ExpressionWrapperProps {
   executionContext?: KibanaExecutionContext;
   lensInspector: LensInspector;
   noPadding?: boolean;
+  shouldUseSizeTransitionVeil?: boolean;
 }
 
 export function ExpressionWrapper({
@@ -71,6 +72,7 @@ export function ExpressionWrapper({
   executionContext,
   lensInspector,
   noPadding,
+  shouldUseSizeTransitionVeil,
 }: ExpressionWrapperProps) {
   if (!expression) return null;
   return (
