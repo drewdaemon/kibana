@@ -5,7 +5,15 @@
  * 2.0.
  */
 
-import { Plugin, CoreSetup, CoreStart, PluginInitializerContext } from '@kbn/core/server';
+import {
+  Plugin,
+  CoreSetup,
+  CoreStart,
+  PluginInitializerContext,
+  KibanaRequest,
+  SavedObjectsClientContract,
+  ElasticsearchClient,
+} from '@kbn/core/server';
 import { PluginStart as DataViewsServerPluginStart } from '@kbn/data-views-plugin/server';
 import {
   PluginStart as DataPluginStart,
@@ -59,6 +67,14 @@ export interface LensServerPluginSetup {
     id: string,
     migrationsGetter: () => MigrateFunctionsObject
   ) => void;
+  /**
+   * Reports queries a Lens document will make when loaded in the UI.
+   */
+  extractQueries: (
+    doc: Document,
+    clients: { savedObjects: SavedObjectsClientContract; elasticsearch: ElasticsearchClient },
+    request: KibanaRequest
+  ) => Promise<object[]>;
 }
 
 export class LensServerPlugin implements Plugin<LensServerPluginSetup, {}, {}, {}> {
@@ -105,6 +121,7 @@ export class LensServerPlugin implements Plugin<LensServerPluginSetup, {}, {}, {
         }
         this.customVisualizationMigrations[id] = migrationsGetter;
       },
+      extractQueries: () => Promise.resolve([]),
     };
   }
 

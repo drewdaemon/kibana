@@ -624,6 +624,8 @@
       "@kbn/dashboard-enhanced-plugin/*": ["x-pack/plugins/dashboard_enhanced/*"],
       "@kbn/dashboard-plugin": ["src/plugins/dashboard"],
       "@kbn/dashboard-plugin/*": ["src/plugins/dashboard/*"],
+      "@kbn/dashboard-queries-plugin": ["src/plugins/dashboard_queries"],
+      "@kbn/dashboard-queries-plugin/*": ["src/plugins/dashboard_queries/*"],
       "@kbn/data-forge": ["x-pack/packages/kbn-data-forge"],
       "@kbn/data-forge/*": ["x-pack/packages/kbn-data-forge/*"],
       "@kbn/data-plugin": ["src/plugins/data"],

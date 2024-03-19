@@ -1,0 +1,14 @@
+{
+  "type": "plugin",
+  "id": "@kbn/dashboard-queries-plugin",
+  "owner": "@elastic/kibana-visualizations",
+  "description": "Dashboard queries API plugin.",
+  "plugin": {
+    "id": "dashboardQueries",
+    "server": true,
+    "browser": false,
+    "requiredPlugins": [
+      "lens",
+    ],
+  }
+}
