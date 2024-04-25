@@ -27,8 +27,8 @@ export function getIndexPatternFromSQLQuery(sqlQuery?: string): string {
 }
 
 // retrieves the index pattern from the aggregate query for ES|QL using ast parsing
-export async function getIndexPatternFromESQLQuery(esql?: string) {
-  const { ast } = await getAstAndSyntaxErrors(esql);
+export function getIndexPatternFromESQLQuery(esql?: string) {
+  const { ast } = getAstAndSyntaxErrors(esql);
   const fromCommand = ast.find(({ name }) => name === 'from');
   const args = (fromCommand?.args ?? []) as ESQLSource[];
   const indices = args.filter((arg) => arg.sourceType === 'index');

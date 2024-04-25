@@ -71,7 +71,7 @@ function NarrowByField(props: NarrowByFieldProps) {
 
   useEffect(() => {
     const setIndexPatternFromQuery = async () => {
-      const indexPattern = await getIndexPatternFromESQLQuery(props.esql);
+      const indexPattern = getIndexPatternFromESQLQuery(props.esql);
       if (indexPattern) {
         setPattern(indexPattern);
       }

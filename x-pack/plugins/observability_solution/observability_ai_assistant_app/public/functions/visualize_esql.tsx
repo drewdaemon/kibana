@@ -414,7 +414,7 @@ export function registerVisualizeQueryRenderFunction({
 
       const trimmedQuery = query.trim();
 
-      const indexPatternAsync = useAsync(() => {
+      const indexPattern = useMemo(() => {
         return getIndexPatternFromESQLQuery(query);
       }, [query]);
 
@@ -432,7 +432,7 @@ export function registerVisualizeQueryRenderFunction({
           userOverrides={userOverrides}
           preferredChartType={preferredChartType}
           errorMessages={errorMessages}
-          indexPattern={indexPatternAsync?.value ?? ''}
+          indexPattern={indexPattern ?? ''}
         />
       );
     }
