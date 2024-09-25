@@ -46,3 +46,4 @@ export { Walker, type WalkerOptions, walk } from './src/walker';
 export { BasicPrettyPrinter } from './src/pretty_print/basic_pretty_printer';
 
 export { ESQLTokenColorRules } from './src/highlighting/token_rules';
+export { tokenize } from './src/highlighting/tokenize';
