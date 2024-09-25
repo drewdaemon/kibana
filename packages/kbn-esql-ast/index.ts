@@ -44,3 +44,5 @@ export { ESQLErrorListener } from './src/antlr_error_listener';
 export { Walker, type WalkerOptions, walk } from './src/walker';
 
 export { BasicPrettyPrinter } from './src/pretty_print/basic_pretty_printer';
+
+export { ESQLTokenColorRules } from './src/highlighting/token_rules';

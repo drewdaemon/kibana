@@ -30,12 +30,12 @@ export const getESQLDocsSections = async () => {
     items: [],
   });
   groups.push(
-    sourceCommands,
-    processingCommands,
-    scalarFunctions,
-    aggregationFunctions,
-    groupingFunctions,
-    operators
+    // sourceCommands,
+    // processingCommands,
+    scalarFunctions
+    // aggregationFunctions,
+    // groupingFunctions,
+    // operators
   );
   return {
     groups,
