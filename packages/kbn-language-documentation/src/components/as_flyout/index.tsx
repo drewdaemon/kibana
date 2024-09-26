@@ -14,12 +14,14 @@ import {
   EuiFlyoutHeader,
   EuiTitle,
   EuiSpacer,
+  EuiCodeBlock,
 } from '@elastic/eui';
 import { i18n } from '@kbn/i18n';
 import { getFilteredGroups } from '../../utils/get_filtered_groups';
 import { DocumentationMainContent, DocumentationNavigation } from '../shared';
 import { getESQLDocsSections } from '../../sections';
 import type { LanguageDocumentationSections } from '../../types';
+import { ESQLCodeBlock } from './esql_code_block';
 
 interface DocumentationFlyoutProps {
   isHelpMenuOpen: boolean;
@@ -101,12 +103,17 @@ function DocumentationFlyout({
             />
           </EuiFlyoutHeader>
           <EuiFlyoutBody>
-            <DocumentationMainContent
+            <ESQLCodeBlock>{'FROM foo'}</ESQLCodeBlock>
+            <EuiCodeBlock language="javascript" paddingSize="m">
+              {`const foo = bar;
+const bar = baz;`}
+            </EuiCodeBlock>
+            {/* <DocumentationMainContent
               searchText={searchText}
               scrollTargets={scrollTargets}
               filteredGroups={filteredGroups}
               sections={documentationSections}
-            />
+            /> */}
           </EuiFlyoutBody>
         </EuiFlyout>
       )}
