@@ -24,7 +24,7 @@ import {
   EuiIcon,
   EuiTitle,
   EuiTextColor,
-  EuiCodeBlock,
+  EuiPanel,
 } from '@elastic/eui';
 import { profile } from './query_profile';
 
@@ -143,7 +143,8 @@ function DataTask(props: TaskData) {
         tookTime: props.took_nanos,
         icon: 'database',
       })}
-      paddingSize="l"
+      arrowDisplay="right"
+      paddingSize="xs"
     >
       {props.operators.map((operator, index) => {
         const Component = getOperatorComponent(operator.operator);
@@ -170,7 +171,8 @@ function ReduceTask(props: TaskData) {
         tookTime: props.took_nanos,
         icon: 'indexFlush',
       })}
-      paddingSize="l"
+      arrowDisplay="right"
+      paddingSize="xs"
     >
       hoody hoo
     </EuiAccordion>
@@ -195,7 +197,8 @@ function FinalizeTask(props: TaskData) {
         tookTime: props.took_nanos,
         icon: 'check',
       })}
-      paddingSize="l"
+      arrowDisplay="right"
+      paddingSize="xs"
     >
       hoody hoo
     </EuiAccordion>
@@ -209,17 +212,67 @@ const taskMap: Record<string, React.FC<TaskData>> = {
 };
 
 function LuceneSourceOperator({ status }: { status: Record<string, any> }) {
-  return <EuiCodeBlock>{JSON.stringify(status, null, 2)}</EuiCodeBlock>;
+  return (
+    <EuiPanel title="Lucene Source Operator">
+      <EuiFlexGroup gutterSize="s">
+        <EuiFlexItem grow={false}>
+          <EuiTitle size="xxs">
+            <h4>Lucene source operator</h4>
+          </EuiTitle>
+        </EuiFlexItem>
+        <EuiFlexItem>
+          <EuiText size="s">
+            <p>
+              <EuiTextColor color="subdued">
+                ({status.processing_nanos / 1e6} milliseconds)
+              </EuiTextColor>
+            </p>
+          </EuiText>
+        </EuiFlexItem>
+      </EuiFlexGroup>
+      <EuiText size="s">
+        {i18n.translate('esql-editor.profile.luceneSourceOperatorDescription', {
+          defaultMessage: 'Retrieved {rows} out of {total} document IDs from {shardCount} shard.',
+          values: {
+            total: status.current,
+            rows: status.rows_emitted,
+            shardCount: status.processed_shards.length,
+          },
+        })}
+      </EuiText>
+    </EuiPanel>
+  );
 }
 
 function ValuesSourceReaderOperator({ status }: { status: Record<string, any> }) {
-  return <EuiCodeBlock>{JSON.stringify(status, null, 2)}</EuiCodeBlock>;
+  return (
+    <EuiPanel>
+      <EuiTitle size="xxs">
+        <h4>Values source reader operator</h4>
+      </EuiTitle>
+      Retrieves values from the index.
+    </EuiPanel>
+  );
 }
 function AggregationOperator({ status }: { status: Record<string, any> }) {
-  return <EuiCodeBlock>{JSON.stringify(status, null, 2)}</EuiCodeBlock>;
+  return (
+    <EuiPanel>
+      <EuiTitle size="xxs">
+        <h4>Aggregation operator</h4>
+      </EuiTitle>
+      Performs an aggregation on the data.
+    </EuiPanel>
+  );
 }
 function ExchangeSinkOperator({ status }: { status: Record<string, any> }) {
-  return <EuiCodeBlock>{JSON.stringify(status, null, 2)}</EuiCodeBlock>;
+  return (
+    <EuiPanel>
+      <EuiTitle size="xxs">
+        <h4>Exchange sink operator</h4>
+      </EuiTitle>
+      Passes data from one thread to another.
+    </EuiPanel>
+  );
 }
 
 function getOperatorComponent(operator: string) {
