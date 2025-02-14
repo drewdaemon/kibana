@@ -24,6 +24,7 @@ import {
   EuiIcon,
   EuiTitle,
   EuiTextColor,
+  EuiCodeBlock,
 } from '@elastic/eui';
 import { profile } from './query_profile';
 
@@ -126,6 +127,31 @@ interface TaskData {
   }>;
 }
 
+function LuceneSourceOperator({ status }: { status: Record<string, any> }) {
+  return <EuiCodeBlock>{JSON.stringify(status, null, 2)}</EuiCodeBlock>;
+}
+
+function ValuesSourceReaderOperator({ status }: { status: Record<string, any> }) {
+  return <EuiCodeBlock>{JSON.stringify(status, null, 2)}</EuiCodeBlock>;
+}
+function AggregationOperator({ status }: { status: Record<string, any> }) {
+  return <EuiCodeBlock>{JSON.stringify(status, null, 2)}</EuiCodeBlock>;
+}
+function ExchangeSinkOperator({ status }: { status: Record<string, any> }) {
+  return <EuiCodeBlock>{JSON.stringify(status, null, 2)}</EuiCodeBlock>;
+}
+
+function getOperatorComponent(operator: string) {
+  if (operator.startsWith('LuceneSourceOperator')) {
+    return LuceneSourceOperator;
+  } else if (operator.startsWith('ValuesSourceReaderOperator')) {
+    return ValuesSourceReaderOperator;
+  } else if (operator.startsWith('AggregationOperator')) {
+    return AggregationOperator;
+  }
+  return ExchangeSinkOperator;
+}
+
 function DataTask(props: TaskData) {
   const id = useGeneratedHtmlId({
     prefix: 'taskAccordion',
@@ -144,7 +170,10 @@ function DataTask(props: TaskData) {
       })}
       paddingSize="l"
     >
-      hoody hoo
+      {props.operators.map((operator, index) => {
+        const Component = getOperatorComponent(operator.operator);
+        return <Component key={index} status={operator.status!} />;
+      })}
     </EuiAccordion>
   );
 }
