@@ -7,7 +7,7 @@
  * License v3.0 only", or the "Server Side Public License, v 1".
  */
 
-import React, { useState, useCallback } from 'react';
+import React from 'react';
 import { i18n } from '@kbn/i18n';
 import {
   EuiModal,
@@ -19,7 +19,6 @@ import {
   EuiText,
   EuiFlexItem,
   EuiFlexGroup,
-  EuiHorizontalRule,
   useGeneratedHtmlId,
   EuiAccordion,
   EuiIcon,
@@ -29,11 +28,6 @@ import {
 import { profile } from './query_profile';
 
 export function QueryProfileModal({ onClose }: { onClose: () => void }) {
-  const [dismissModalChecked, setDismissModalChecked] = useState(false);
-  const onTransitionModalDismiss = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setDismissModalChecked(e.target.checked);
-  }, []);
-
   return (
     <EuiModal
       onClose={() => onClose()}
@@ -53,7 +47,6 @@ export function QueryProfileModal({ onClose }: { onClose: () => void }) {
           const TaskComponent = taskMap[driver.task_description];
           return <TaskComponent key={index} {...driver} />;
         })}
-        <EuiHorizontalRule margin="s" />
       </EuiModalBody>
       <EuiModalFooter css={{ paddingBlockStart: 0 }}>
         <EuiFlexGroup alignItems="center" justifyContent="spaceBetween" gutterSize="none">
