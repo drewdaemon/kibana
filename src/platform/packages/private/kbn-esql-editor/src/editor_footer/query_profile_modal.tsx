@@ -51,22 +51,19 @@ export function QueryProfileModal({ onClose }: { onClose: () => void }) {
       </EuiModalBody>
       <EuiModalFooter css={{ paddingBlockStart: 0 }}>
         <EuiFlexGroup alignItems="center" justifyContent="spaceBetween" gutterSize="none">
+          <EuiFlexItem grow={true} />
           <EuiFlexItem grow={false}>
-            <EuiFlexGroup gutterSize="m">
-              <EuiFlexItem grow={false}>
-                <EuiButtonEmpty
-                  onClick={async () => {
-                    await onClose();
-                  }}
-                  color="primary"
-                  data-test-subj="esqlEditor-query-profile-close-btn"
-                >
-                  {i18n.translate('esqlEditor.queryProfile.closeLabel', {
-                    defaultMessage: 'Close',
-                  })}
-                </EuiButtonEmpty>
-              </EuiFlexItem>
-            </EuiFlexGroup>
+            <EuiButtonEmpty
+              onClick={async () => {
+                await onClose();
+              }}
+              color="primary"
+              data-test-subj="esqlEditor-query-profile-close-btn"
+            >
+              {i18n.translate('esqlEditor.queryProfile.closeLabel', {
+                defaultMessage: 'Close',
+              })}
+            </EuiButtonEmpty>
           </EuiFlexItem>
         </EuiFlexGroup>
       </EuiModalFooter>
@@ -74,19 +71,31 @@ export function QueryProfileModal({ onClose }: { onClose: () => void }) {
   );
 }
 
+interface TaskData {
+  task_description: string;
+  took_nanos: number;
+  start_millis: number;
+  operators: Array<{
+    operator: string;
+    status?: Record<string, any>;
+  }>;
+}
+
 const getTaskButtonContent = ({
   name,
   explanation,
   tookTime,
+  icon,
 }: {
   name: string;
   explanation: string;
   tookTime: number;
+  icon: string;
 }) => (
   <div>
     <EuiFlexGroup gutterSize="s" alignItems="center" responsive={false}>
       <EuiFlexItem grow={false}>
-        <EuiIcon type="index" size="m" />
+        <EuiIcon type={icon} size="m" />
       </EuiFlexItem>
 
       <EuiFlexItem grow={false}>
@@ -117,41 +126,6 @@ const getTaskButtonContent = ({
   </div>
 );
 
-interface TaskData {
-  task_description: string;
-  took_nanos: number;
-  start_millis: number;
-  operators: Array<{
-    operator: string;
-    status?: Record<string, any>;
-  }>;
-}
-
-function LuceneSourceOperator({ status }: { status: Record<string, any> }) {
-  return <EuiCodeBlock>{JSON.stringify(status, null, 2)}</EuiCodeBlock>;
-}
-
-function ValuesSourceReaderOperator({ status }: { status: Record<string, any> }) {
-  return <EuiCodeBlock>{JSON.stringify(status, null, 2)}</EuiCodeBlock>;
-}
-function AggregationOperator({ status }: { status: Record<string, any> }) {
-  return <EuiCodeBlock>{JSON.stringify(status, null, 2)}</EuiCodeBlock>;
-}
-function ExchangeSinkOperator({ status }: { status: Record<string, any> }) {
-  return <EuiCodeBlock>{JSON.stringify(status, null, 2)}</EuiCodeBlock>;
-}
-
-function getOperatorComponent(operator: string) {
-  if (operator.startsWith('LuceneSourceOperator')) {
-    return LuceneSourceOperator;
-  } else if (operator.startsWith('ValuesSourceReaderOperator')) {
-    return ValuesSourceReaderOperator;
-  } else if (operator.startsWith('AggregationOperator')) {
-    return AggregationOperator;
-  }
-  return ExchangeSinkOperator;
-}
-
 function DataTask(props: TaskData) {
   const id = useGeneratedHtmlId({
     prefix: 'taskAccordion',
@@ -167,6 +141,7 @@ function DataTask(props: TaskData) {
         name: 'Data retrieval',
         explanation: 'Operations related to data retrieval and processing on the data nodes.',
         tookTime: props.took_nanos,
+        icon: 'database',
       })}
       paddingSize="l"
     >
@@ -193,6 +168,7 @@ function ReduceTask(props: TaskData) {
         name: 'Data reduce',
         explanation: 'Gathering intermediate query results from the data nodes.',
         tookTime: props.took_nanos,
+        icon: 'indexFlush',
       })}
       paddingSize="l"
     >
@@ -217,6 +193,7 @@ function FinalizeTask(props: TaskData) {
         explanation:
           'Operations which take place on the coordinating node before the results are returned.',
         tookTime: props.took_nanos,
+        icon: 'check',
       })}
       paddingSize="l"
     >
@@ -230,3 +207,28 @@ const taskMap: Record<string, React.FC<TaskData>> = {
   node_reduce: ReduceTask,
   final: FinalizeTask,
 };
+
+function LuceneSourceOperator({ status }: { status: Record<string, any> }) {
+  return <EuiCodeBlock>{JSON.stringify(status, null, 2)}</EuiCodeBlock>;
+}
+
+function ValuesSourceReaderOperator({ status }: { status: Record<string, any> }) {
+  return <EuiCodeBlock>{JSON.stringify(status, null, 2)}</EuiCodeBlock>;
+}
+function AggregationOperator({ status }: { status: Record<string, any> }) {
+  return <EuiCodeBlock>{JSON.stringify(status, null, 2)}</EuiCodeBlock>;
+}
+function ExchangeSinkOperator({ status }: { status: Record<string, any> }) {
+  return <EuiCodeBlock>{JSON.stringify(status, null, 2)}</EuiCodeBlock>;
+}
+
+function getOperatorComponent(operator: string) {
+  if (operator.startsWith('LuceneSourceOperator')) {
+    return LuceneSourceOperator;
+  } else if (operator.startsWith('ValuesSourceReaderOperator')) {
+    return ValuesSourceReaderOperator;
+  } else if (operator.startsWith('AggregationOperator')) {
+    return AggregationOperator;
+  }
+  return ExchangeSinkOperator;
+}
