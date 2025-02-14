@@ -42,6 +42,7 @@ import type { ESQLEditorDeps } from '../types';
 import { getReducedSpaceStyling, swapArrayElements } from './history_starred_queries_helpers';
 import { EsqlStarredQueriesService, StarredQueryItem } from './esql_starred_queries_service';
 import { DiscardStarredQueryModal } from './discard_starred_query';
+import { QueryProfileModal } from './query_profile_modal';
 
 export function QueryHistoryAction({
   toggleHistory,
@@ -257,6 +258,7 @@ export function QueryList({
   const theme = useEuiTheme();
   const scrollBarStyles = euiScrollBarStyles(theme);
   const [isDiscardQueryModalVisible, setIsDiscardQueryModalVisible] = useState(false);
+  const [isQueryProfileModalVisible, setIsQueryProfileModalVisible] = useState(false);
 
   const { sorting, onTableChange } = useEuiTablePersist<QueryHistoryItem>({
     tableId: 'esqlQueryHistory',
@@ -315,6 +317,28 @@ export function QueryList({
                     />
                   )}
                 </EuiCopy>
+              </EuiFlexItem>
+              <EuiFlexItem grow={false}>
+                <EuiToolTip
+                  position="top"
+                  content={i18n.translate('esqlEditor.query.esqlQueriesProfile', {
+                    defaultMessage: 'View performance profile',
+                  })}
+                >
+                  <EuiButtonIcon
+                    iconType="search"
+                    iconSize="m"
+                    onClick={() => {
+                      setIsQueryProfileModalVisible(true);
+                    }}
+                    css={css`
+                      cursor: pointer;
+                    `}
+                    aria-label={i18n.translate('esqlEditor.query.esqlQueriesProfile', {
+                      defaultMessage: 'View performance profile',
+                    })}
+                  />
+                </EuiToolTip>
               </EuiFlexItem>
             </EuiFlexGroup>
           );
@@ -390,6 +414,9 @@ export function QueryList({
             Promise.resolve()
           }
         />
+      )}
+      {isQueryProfileModalVisible && (
+        <QueryProfileModal onClose={() => setIsQueryProfileModalVisible(false)} />
       )}
     </div>
   );
