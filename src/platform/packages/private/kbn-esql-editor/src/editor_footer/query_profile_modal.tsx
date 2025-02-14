@@ -17,11 +17,16 @@ import {
   EuiModalHeaderTitle,
   EuiButtonEmpty,
   EuiText,
-  EuiCheckbox,
   EuiFlexItem,
   EuiFlexGroup,
   EuiHorizontalRule,
+  useGeneratedHtmlId,
+  EuiAccordion,
+  EuiIcon,
+  EuiTitle,
+  EuiTextColor,
 } from '@elastic/eui';
+import { profile } from './query_profile';
 
 export function QueryProfileModal({ onClose }: { onClose: () => void }) {
   const [dismissModalChecked, setDismissModalChecked] = useState(false);
@@ -44,21 +49,14 @@ export function QueryProfileModal({ onClose }: { onClose: () => void }) {
       </EuiModalHeader>
 
       <EuiModalBody>
-        <EuiText size="m">We gonna do some shizzle here</EuiText>
+        {profile.drivers.map((driver, index) => {
+          const TaskComponent = taskMap[driver.task_description];
+          return <TaskComponent key={index} {...driver} />;
+        })}
         <EuiHorizontalRule margin="s" />
       </EuiModalBody>
       <EuiModalFooter css={{ paddingBlockStart: 0 }}>
         <EuiFlexGroup alignItems="center" justifyContent="spaceBetween" gutterSize="none">
-          <EuiFlexItem grow={false}>
-            <EuiCheckbox
-              id="dismiss-discard-starred-query-modal"
-              label={i18n.translate('esqlEditor.discardStarredQueryModal.dismissButtonLabel', {
-                defaultMessage: "Don't ask me again",
-              })}
-              checked={dismissModalChecked}
-              onChange={onTransitionModalDismiss}
-            />
-          </EuiFlexItem>
           <EuiFlexItem grow={false}>
             <EuiFlexGroup gutterSize="m">
               <EuiFlexItem grow={false}>
@@ -81,3 +79,132 @@ export function QueryProfileModal({ onClose }: { onClose: () => void }) {
     </EuiModal>
   );
 }
+
+const getTaskButtonContent = ({
+  name,
+  explanation,
+  tookTime,
+}: {
+  name: string;
+  explanation: string;
+  tookTime: number;
+}) => (
+  <div>
+    <EuiFlexGroup gutterSize="s" alignItems="center" responsive={false}>
+      <EuiFlexItem grow={false}>
+        <EuiIcon type="index" size="m" />
+      </EuiFlexItem>
+
+      <EuiFlexItem grow={false}>
+        <EuiTitle size="xs">
+          <h3>{name}</h3>
+        </EuiTitle>
+      </EuiFlexItem>
+
+      <EuiFlexItem>
+        <EuiText size="s">
+          <p>
+            <EuiTextColor color="subdued">
+              {i18n.translate('esql-editor.profile.taskTookTime', {
+                defaultMessage: '({tookTime, number, ::.##} milliseconds)',
+                values: { tookTime: tookTime / 1e6 },
+              })}
+            </EuiTextColor>
+          </p>
+        </EuiText>
+      </EuiFlexItem>
+    </EuiFlexGroup>
+
+    <EuiText size="s">
+      <p>
+        <EuiTextColor color="subdued">{explanation}</EuiTextColor>
+      </p>
+    </EuiText>
+  </div>
+);
+
+interface TaskData {
+  task_description: string;
+  took_nanos: number;
+  start_millis: number;
+  operators: Array<{
+    operator: string;
+    status?: Record<string, any>;
+  }>;
+}
+
+function DataTask(props: TaskData) {
+  const id = useGeneratedHtmlId({
+    prefix: 'taskAccordion',
+  });
+
+  return (
+    <EuiAccordion
+      id={id}
+      element="fieldset"
+      borders="horizontal"
+      buttonProps={{ paddingSize: 'm', css: { width: '100%' } }}
+      buttonContent={getTaskButtonContent({
+        name: 'Data retrieval',
+        explanation: 'Operations related to data retrieval and processing on the data nodes.',
+        tookTime: props.took_nanos,
+      })}
+      paddingSize="l"
+    >
+      hoody hoo
+    </EuiAccordion>
+  );
+}
+
+function ReduceTask(props: TaskData) {
+  const id = useGeneratedHtmlId({
+    prefix: 'taskAccordion',
+  });
+
+  return (
+    <EuiAccordion
+      id={id}
+      element="fieldset"
+      borders="horizontal"
+      buttonProps={{ paddingSize: 'm', css: { width: '100%' } }}
+      buttonContent={getTaskButtonContent({
+        name: 'Data reduce',
+        explanation: 'Gathering intermediate query results from the data nodes.',
+        tookTime: props.took_nanos,
+      })}
+      paddingSize="l"
+    >
+      hoody hoo
+    </EuiAccordion>
+  );
+}
+
+function FinalizeTask(props: TaskData) {
+  const id = useGeneratedHtmlId({
+    prefix: 'taskAccordion',
+  });
+
+  return (
+    <EuiAccordion
+      id={id}
+      element="fieldset"
+      borders="horizontal"
+      buttonProps={{ paddingSize: 'm', css: { width: '100%' } }}
+      buttonContent={getTaskButtonContent({
+        name: 'Finalize',
+        explanation:
+          'Operations which take place on the coordinating node before the results are returned.',
+        tookTime: props.took_nanos,
+      })}
+      paddingSize="l"
+    >
+      hoody hoo
+    </EuiAccordion>
+  );
+}
+
+const taskMap: Record<string, React.FC<TaskData>> = {
+  data: DataTask,
+  node_reduce: ReduceTask,
+  final: FinalizeTask,
+};
