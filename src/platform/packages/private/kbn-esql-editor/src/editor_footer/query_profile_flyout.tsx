@@ -10,11 +10,6 @@
 import React from 'react';
 import { i18n } from '@kbn/i18n';
 import {
-  EuiModal,
-  EuiModalBody,
-  EuiModalFooter,
-  EuiModalHeader,
-  EuiModalHeaderTitle,
   EuiButtonEmpty,
   EuiText,
   EuiFlexItem,
@@ -24,50 +19,54 @@ import {
   EuiIcon,
   EuiTitle,
   EuiTextColor,
-  EuiPanel,
+  EuiFlyout,
+  EuiFlyoutHeader,
+  EuiFlyoutBody,
+  EuiFlyoutFooter,
+  EuiDescriptionListTitle,
+  EuiDescriptionListDescription,
+  EuiDescriptionList,
 } from '@elastic/eui';
+import { FormattedMessage } from '@kbn/i18n-react';
 import { profile } from './query_profile';
 
-export function QueryProfileModal({ onClose }: { onClose: () => void }) {
+export function QueryProfileFlyout({ onClose }: { onClose: () => void }) {
   return (
-    <EuiModal
+    <EuiFlyout
       onClose={() => onClose()}
       style={{ width: 700 }}
       data-test-subj="discard-starred-query-modal"
     >
-      <EuiModalHeader>
-        <EuiModalHeaderTitle>
-          {i18n.translate('esqlEditor.discardStarredQueryModal.title', {
-            defaultMessage: 'Query profile',
-          })}
-        </EuiModalHeaderTitle>
-      </EuiModalHeader>
+      <EuiFlyoutHeader>
+        <EuiTitle size="m">
+          <h2>
+            {i18n.translate('esqlEditor.discardStarredQueryModal.title', {
+              defaultMessage: 'Query profile',
+            })}
+          </h2>
+        </EuiTitle>
+      </EuiFlyoutHeader>
 
-      <EuiModalBody>
+      <EuiFlyoutBody>
         {profile.drivers.map((driver, index) => {
           const TaskComponent = taskMap[driver.task_description];
           return <TaskComponent key={index} {...driver} />;
         })}
-      </EuiModalBody>
-      <EuiModalFooter css={{ paddingBlockStart: 0 }}>
-        <EuiFlexGroup alignItems="center" justifyContent="spaceBetween" gutterSize="none">
-          <EuiFlexItem grow={true} />
-          <EuiFlexItem grow={false}>
-            <EuiButtonEmpty
-              onClick={async () => {
-                await onClose();
-              }}
-              color="primary"
-              data-test-subj="esqlEditor-query-profile-close-btn"
-            >
-              {i18n.translate('esqlEditor.queryProfile.closeLabel', {
-                defaultMessage: 'Close',
-              })}
-            </EuiButtonEmpty>
-          </EuiFlexItem>
-        </EuiFlexGroup>
-      </EuiModalFooter>
-    </EuiModal>
+      </EuiFlyoutBody>
+      <EuiFlyoutFooter css={{ paddingBlockStart: 0 }}>
+        <EuiButtonEmpty
+          onClick={() => {
+            onClose();
+          }}
+          color="primary"
+          data-test-subj="esqlEditor-query-profile-close-btn"
+        >
+          {i18n.translate('esqlEditor.queryProfile.closeLabel', {
+            defaultMessage: 'Close',
+          })}
+        </EuiButtonEmpty>
+      </EuiFlyoutFooter>
+    </EuiFlyout>
   );
 }
 
@@ -146,10 +145,12 @@ function DataTask(props: TaskData) {
       arrowDisplay="right"
       paddingSize="xs"
     >
-      {props.operators.map((operator, index) => {
-        const Component = getOperatorComponent(operator.operator);
-        return <Component key={index} status={operator.status!} />;
-      })}
+      <EuiDescriptionList compressed css={{ marginLeft: '40px' }}>
+        {props.operators.map((operator, index) => {
+          const Component = getOperatorComponent(operator.operator);
+          return <Component key={index} status={operator.status!} />;
+        })}
+      </EuiDescriptionList>
     </EuiAccordion>
   );
 }
@@ -213,65 +214,107 @@ const taskMap: Record<string, React.FC<TaskData>> = {
 
 function LuceneSourceOperator({ status }: { status: Record<string, any> }) {
   return (
-    <EuiPanel title="Lucene Source Operator">
-      <EuiFlexGroup gutterSize="s">
-        <EuiFlexItem grow={false}>
-          <EuiTitle size="xxs">
-            <h4>Lucene source operator</h4>
-          </EuiTitle>
-        </EuiFlexItem>
-        <EuiFlexItem>
-          <EuiText size="s">
-            <p>
-              <EuiTextColor color="subdued">
-                ({status.processing_nanos / 1e6} milliseconds)
-              </EuiTextColor>
-            </p>
-          </EuiText>
-        </EuiFlexItem>
-      </EuiFlexGroup>
-      <EuiText size="s">
-        {i18n.translate('esql-editor.profile.luceneSourceOperatorDescription', {
-          defaultMessage: 'Retrieved {rows} out of {total} document IDs from {shardCount} shard.',
-          values: {
+    <>
+      <EuiDescriptionListTitle>
+        <EuiFlexGroup gutterSize="s">
+          <EuiFlexItem grow={false}>Lucene source operator</EuiFlexItem>
+          <EuiFlexItem>
+            <EuiText size="s">
+              <p>
+                <EuiTextColor color="subdued">
+                  {i18n.translate('lolz', {
+                    defaultMessage: '({tookTime, number, ::.##} milliseconds)',
+                    values: { tookTime: status.processing_nanos / 1e6 },
+                  })}
+                </EuiTextColor>
+              </p>
+            </EuiText>
+          </EuiFlexItem>
+        </EuiFlexGroup>
+      </EuiDescriptionListTitle>
+      <EuiDescriptionListDescription>
+        <FormattedMessage
+          id="esql-editor.profile.luceneSourceOperatorDescription"
+          defaultMessage="Retrieved {rows, number} out of {total, number} document IDs from {shardCount, number} {shardCount, plural, one {shard} other {shards}}."
+          values={{
             total: status.current,
             rows: status.rows_emitted,
             shardCount: status.processed_shards.length,
-          },
-        })}
-      </EuiText>
-    </EuiPanel>
+          }}
+        />
+      </EuiDescriptionListDescription>
+    </>
   );
 }
 
 function ValuesSourceReaderOperator({ status }: { status: Record<string, any> }) {
   return (
-    <EuiPanel>
-      <EuiTitle size="xxs">
-        <h4>Values source reader operator</h4>
-      </EuiTitle>
-      Retrieves values from the index.
-    </EuiPanel>
+    <>
+      <EuiDescriptionListTitle>
+        <EuiFlexGroup gutterSize="s">
+          <EuiFlexItem grow={false}>Values source reader operator</EuiFlexItem>
+          <EuiFlexItem>
+            <EuiText size="s">
+              <p>
+                <EuiTextColor color="subdued">
+                  {i18n.translate('lolz', {
+                    defaultMessage: '({tookTime, number, ::.##} milliseconds)',
+                    values: { tookTime: status.process_nanos / 1e6 },
+                  })}
+                </EuiTextColor>
+              </p>
+            </EuiText>
+          </EuiFlexItem>
+        </EuiFlexGroup>
+      </EuiDescriptionListTitle>
+      <EuiDescriptionListDescription>
+        {i18n.translate('lolz', {
+          defaultMessage: 'Retrieved {rows, number} rows from the index.',
+          values: { rows: status.rows_emitted },
+        })}
+      </EuiDescriptionListDescription>
+    </>
   );
 }
 function AggregationOperator({ status }: { status: Record<string, any> }) {
   return (
-    <EuiPanel>
-      <EuiTitle size="xxs">
-        <h4>Aggregation operator</h4>
-      </EuiTitle>
-      Performs an aggregation on the data.
-    </EuiPanel>
+    <>
+      <EuiDescriptionListTitle>
+        <EuiFlexGroup gutterSize="s">
+          <EuiFlexItem grow={false}>Aggregation operator</EuiFlexItem>
+          <EuiFlexItem>
+            <EuiText size="s">
+              <p>
+                <EuiTextColor color="subdued">
+                  {i18n.translate('lolz', {
+                    defaultMessage: '({tookTime, number, ::.##} milliseconds)',
+                    values: {
+                      tookTime: (status.aggregation_nanos + status.aggregation_finish_nanos) / 1e6,
+                    },
+                  })}
+                </EuiTextColor>
+              </p>
+            </EuiText>
+          </EuiFlexItem>
+        </EuiFlexGroup>
+      </EuiDescriptionListTitle>
+      <EuiDescriptionListDescription>
+        {i18n.translate('lolz', {
+          defaultMessage: 'Performed COUNT and MAX aggregations.',
+          values: { rows: status.rows_emitted },
+        })}
+      </EuiDescriptionListDescription>
+    </>
   );
 }
 function ExchangeSinkOperator({ status }: { status: Record<string, any> }) {
   return (
-    <EuiPanel>
-      <EuiTitle size="xxs">
-        <h4>Exchange sink operator</h4>
-      </EuiTitle>
-      Passes data from one thread to another.
-    </EuiPanel>
+    <>
+      <EuiDescriptionListTitle>Exchange sink operator</EuiDescriptionListTitle>
+      <EuiDescriptionListDescription>
+        Passes data from one thread to another.
+      </EuiDescriptionListDescription>
+    </>
   );
 }
 

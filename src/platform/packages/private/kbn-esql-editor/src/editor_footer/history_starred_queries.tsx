@@ -42,7 +42,7 @@ import type { ESQLEditorDeps } from '../types';
 import { getReducedSpaceStyling, swapArrayElements } from './history_starred_queries_helpers';
 import { EsqlStarredQueriesService, StarredQueryItem } from './esql_starred_queries_service';
 import { DiscardStarredQueryModal } from './discard_starred_query';
-import { QueryProfileModal } from './query_profile_modal';
+import { QueryProfileFlyout } from './query_profile_flyout';
 
 export function QueryHistoryAction({
   toggleHistory,
@@ -258,7 +258,7 @@ export function QueryList({
   const theme = useEuiTheme();
   const scrollBarStyles = euiScrollBarStyles(theme);
   const [isDiscardQueryModalVisible, setIsDiscardQueryModalVisible] = useState(false);
-  const [isQueryProfileModalVisible, setIsQueryProfileModalVisible] = useState(false);
+  const [isQueryProfileVisible, setIsQueryProfileVisible] = useState(false);
 
   const { sorting, onTableChange } = useEuiTablePersist<QueryHistoryItem>({
     tableId: 'esqlQueryHistory',
@@ -329,7 +329,7 @@ export function QueryList({
                     iconType="search"
                     iconSize="m"
                     onClick={() => {
-                      setIsQueryProfileModalVisible(true);
+                      setIsQueryProfileVisible(true);
                     }}
                     css={css`
                       cursor: pointer;
@@ -415,8 +415,8 @@ export function QueryList({
           }
         />
       )}
-      {isQueryProfileModalVisible && (
-        <QueryProfileModal onClose={() => setIsQueryProfileModalVisible(false)} />
+      {isQueryProfileVisible && (
+        <QueryProfileFlyout onClose={() => setIsQueryProfileVisible(false)} />
       )}
     </div>
   );
