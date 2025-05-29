@@ -16,7 +16,7 @@ export type { ESQLCallbacks } from './src/shared/types';
  */
 
 // Validation function
-export { validateQuery } from './src/validation/validation';
+export { validateQuery } from './src/lib/validation/validation';
 // Autocomplete function
 export { suggest } from './src/autocomplete/autocomplete';
 /**
@@ -29,7 +29,7 @@ export type {
   ESQLFieldWithMetadata,
   ESQLPolicy,
   ErrorTypes as ESQLValidationErrorTypes,
-} from './src/validation/types';
+} from './src/lib/validation/types';
 export { collectUserDefinedColumns } from './src/shared/user_defined_columns';
 export {
   getAllFunctions,
