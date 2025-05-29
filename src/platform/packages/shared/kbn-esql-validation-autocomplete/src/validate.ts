@@ -53,7 +53,7 @@ import type {
   ValidationResult,
 } from './types';
 
-import { validate as validateJoinCommand } from './commands/join';
+import { validate as validateJoinCommand } from './lib/definitions/commands/join';
 
 /**
  * ES|QL validation public API
