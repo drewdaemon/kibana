@@ -14,21 +14,21 @@ import {
   isLiteral,
   isParamLiteral,
 } from '../../ast/is';
+import type { ESQLColumnData } from '../../commands_registry/types';
 import type { ESQLAstItem, ESQLFunction, ESQLSingleAstItem } from '../../types';
 import { lastItem } from '../../visitor/utils';
+import { Walker } from '../../walker';
 import type {
   FunctionDefinition,
   FunctionParameterType,
   Signature,
   SupportedDataType,
 } from '../types';
+import { isMarkerNode } from './ast';
 import { getFunctionDefinition } from './functions';
+import { TIME_SYSTEM_PARAMS } from './literals';
 import { isArrayType } from './operators';
 import { getColumnForASTNode } from './shared';
-import type { ESQLColumnData } from '../../commands_registry/types';
-import { TIME_SYSTEM_PARAMS } from './literals';
-import { Walker } from '../../walker';
-import { isMarkerNode } from './ast';
 
 // #region type detection
 
