@@ -151,7 +151,7 @@ export function getFragmentData(innerText: string) {
  * TODO — split this into distinct functions, one for fields, one for functions, one for literals
  */
 export async function getFieldsOrFunctionsSuggestions(
-  types: string[],
+  types: (SupportedDataType | 'unknown')[],
   location: Location,
   getFieldsByType: GetColumnsByTypeFn,
   {
