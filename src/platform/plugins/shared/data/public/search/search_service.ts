@@ -231,6 +231,7 @@ export class SearchService implements Plugin<ISearchSetup, ISearchStart> {
     const { http, uiSettings, chrome, application, notifications, ...startServices } = coreStart;
 
     const search = ((request, options = {}) => {
+      performance.mark('data_requested_competitive');
       return this.searchInterceptor.search(request, options, true);
     }) as ISearchGeneric;
 
@@ -251,6 +252,8 @@ export class SearchService implements Plugin<ISearchSetup, ISearchStart> {
       search,
       dataViews: indexPatterns,
       onResponse: (request, response, options) => {
+        performance.mark('data_received_competitive');
+
         if (!options.disableWarningToasts) {
           const { rawResponse } = response;
 

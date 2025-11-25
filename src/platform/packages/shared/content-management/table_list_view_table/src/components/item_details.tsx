@@ -91,6 +91,7 @@ export function ItemDetails<T extends UserContentCommonSchema>({
           href={getDetailViewLink?.(item)}
           onClick={() => {
             performance.mark('navigate_to_dashboard');
+            performance.mark('navigation_start_competitive');
           }}
           data-test-subj={`${id}ListingTitleLink-${item.attributes.title.split(' ').join('-')}`}
         >

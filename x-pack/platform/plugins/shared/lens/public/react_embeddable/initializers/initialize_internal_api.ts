@@ -96,8 +96,55 @@ export function initializeInternalApi(
     },
     dispatchRenderStart: () => hasRenderCompleted$.next(false),
     dispatchRenderComplete: () => {
+      performance.mark('render_complete_competitive');
       renderCount$.next(renderCount$.getValue() + 1);
       hasRenderCompleted$.next(true);
+
+      try {
+        printMetrics(
+          'Fine-grained performance',
+          [
+            'time_to_navigate',
+            'time_until_embeddable_factory_requested',
+            'time_until_embeddable_requested',
+            'time_until_embeddable_executes_expression',
+            'time_to_requester_fn',
+            'time_until_data_request',
+            'time_to_data',
+            'time_to_charts_lib',
+            'time_in_charts_lib',
+          ],
+          [
+            'navigate_to_dashboard',
+            'dashboard_render_initiated',
+            'embeddable_factory_requested',
+            'embeddable_requested',
+            'expression_sent_to_engine',
+            'requester_fn',
+            'search_initiated',
+            'search_response_received',
+            'charts_lib_invoked',
+            'render_complete',
+          ]
+        );
+      } catch {
+        // do nothing if performance API fails
+      }
+
+      try {
+        printMetrics(
+          'Competitive performance',
+          ['data_requested_competitive', 'data_received_competitive', 'chart_drawn_competitive'],
+          [
+            'navigation_start_competitive',
+            'data_requested_competitive',
+            'data_received_competitive',
+            'render_complete_competitive',
+          ]
+        );
+      } catch {
+        // do nothing if performance API fails
+      }
     },
     updateExpressionParams: (newParams: ExpressionWrapperProps | null) =>
       expressionParams$.next(newParams),
@@ -151,3 +198,42 @@ export function initializeInternalApi(
     },
   };
 }
+
+const printMetrics = (title: string, measureNames: string[], marks: string[]) => {
+  for (let i = 0; i < marks.length - 1; i++) {
+    performance.measure(measureNames[i], marks[i], marks[i + 1]);
+  }
+
+  performance.measure('total', marks[0], marks[marks.length - 1]);
+
+  // log them
+
+  const measures = measureNames
+    .map((name) => performance.getEntriesByName(name, 'measure'))
+    .flat()
+    .sort((a, b) => {
+      // Keep "total" measure at the end
+      if (a.name === 'total') return 1;
+      if (b.name === 'total') return -1;
+      return a.startTime - b.startTime;
+    });
+
+  let totalTime = 0;
+  for (const measure of measures) {
+    totalTime += measure.duration;
+  }
+
+  // Print performance data in TSV format for Google Sheets
+  let tsvOutput = '';
+  for (let i = 0; i < measures.length; i++) {
+    const measure = measures[i];
+    const percentage = totalTime > 0 ? ((measure.duration / totalTime) * 100).toFixed(1) : '0.0';
+    tsvOutput += `${measure.name}\t${measure.duration.toFixed(2)}\t${percentage}\n`;
+  }
+
+  console.log(`${title} TSV:\nMeasure\tDuration (ms)\tPercentage\n${tsvOutput}`);
+
+  marks.map((mark) => performance.clearMarks(mark));
+  measureNames.map((measure) => performance.clearMeasures(measure));
+  performance.clearMarks('total');
+};
