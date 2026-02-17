@@ -119,7 +119,6 @@ export function initializeSearchContext(
       ...timeRangeManager.getLatestState(),
     }),
     reinitializeState: (lastSaved?: LensSerializedAPIConfig) => {
-      // TODO: Add timeRange to LensByValueSerializedAPIConfig if panel-level time range should be persisted
       const timeRange =
         lastSaved && 'timeRange' in lastSaved ? { timeRange: lastSaved.timeRange } : undefined;
       timeRangeManager.reinitializeState(timeRange);

@@ -247,7 +247,7 @@ export function transformToApiConfig(
 }
 
 type ExcludedDashboardStateKeys =
-  | keyof LensUnifiedSearchContext
+  | Exclude<keyof LensUnifiedSearchContext, 'timeRange'>
   | keyof LensSharedProps
   | Exclude<keyof LensPanelProps, 'disableTriggers'>;
 
@@ -255,11 +255,10 @@ export function stripDashboardContext<
   T extends Partial<Record<ExcludedDashboardStateKeys, unknown>>
 >(state: T): Omit<T, ExcludedDashboardStateKeys> {
   const {
-    // LensUnifiedSearchContext
+    // LensUnifiedSearchContext (except timeRange which will be the panel-specific override if provided)
     searchSessionId,
     filters,
     query,
-    timeRange,
     timeslice,
     lastReloadRequestTime,
     // LensSharedProps
