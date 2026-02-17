@@ -249,7 +249,7 @@ export function transformToApiConfig(
 type ExcludedDashboardStateKeys =
   | Exclude<keyof LensUnifiedSearchContext, 'timeRange'>
   | keyof LensSharedProps
-  | Exclude<keyof LensPanelProps, 'disableTriggers'>;
+  | keyof LensPanelProps;
 
 export function stripDashboardContext<
   T extends Partial<Record<ExcludedDashboardStateKeys, unknown>>
@@ -269,13 +269,14 @@ export function stripDashboardContext<
     viewMode,
     forceDSL,
     esqlVariables,
-    // LensPanelProps (except disableTriggers)
+    // LensPanelProps
     id,
     renderMode,
     syncColors,
     syncTooltips,
     syncCursor,
     palette,
+    disableTriggers,
     ...cleanedState
   } = state;
 
