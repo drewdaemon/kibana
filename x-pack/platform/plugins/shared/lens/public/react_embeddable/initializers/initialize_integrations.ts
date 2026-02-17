@@ -17,7 +17,7 @@ import type {
   LensSerializedAPIConfig,
 } from '@kbn/lens-common-2';
 import type { HasSerializableState } from '@kbn/presentation-publishing';
-import { isTextBasedLanguage, stripDashboardContext, transformToApiConfig } from '../helper';
+import { isTextBasedLanguage, stripInheritedContext, transformToApiConfig } from '../helper';
 
 export function initializeIntegrations(getLatestState: GetStateType): {
   api: Omit<
@@ -40,7 +40,7 @@ export function initializeIntegrations(getLatestState: GetStateType): {
        * Make sure to remove the attributes when the panel is by reference.
        */
       serializeState: (): LensSerializedAPIConfig => {
-        const currentState = stripDashboardContext(getLatestState());
+        const currentState = stripInheritedContext(getLatestState());
 
         const { savedObjectId, attributes, ...state } = currentState;
         if (savedObjectId) {

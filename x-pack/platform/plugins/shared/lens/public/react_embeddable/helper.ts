@@ -203,10 +203,10 @@ export function transformFromApiConfig(state: LensSerializedAPIConfig): LensSeri
 }
 
 /**
- * !Important! call stripDashboardContext before transforming to API config
+ * !Important! call stripInheritedContext before transforming to API config
  */
 export function transformToApiConfig(
-  state: Omit<LensSerializedState, ExcludedDashboardStateKeys>
+  state: Omit<LensSerializedState, ExcludedInheritedStateKeys>
 ): LensByValueSerializedAPIConfig {
   const { savedObjectId, attributes } = state;
 
@@ -246,19 +246,19 @@ export function transformToApiConfig(
   };
 }
 
-type ExcludedDashboardStateKeys =
+type ExcludedInheritedStateKeys =
   | Exclude<keyof LensUnifiedSearchContext, 'timeRange'>
   | keyof LensSharedProps
   | keyof LensPanelProps;
 
 /**
- * The serialized state contains many properties that are inherited from the dashboard
+ * The serialized state contains many properties that are inherited from the dashboard or other container
  * or are runtime-only (like executionContext) and should not be persisted at the panel
  * level. This function strips those out to ensure only panel-level state is persisted.
  */
-export function stripDashboardContext(
+export function stripInheritedContext(
   state: LensSerializedState
-): Omit<LensSerializedState, ExcludedDashboardStateKeys> {
+): Omit<LensSerializedState, ExcludedInheritedStateKeys> {
   const {
     // LensUnifiedSearchContext (except timeRange which will be the panel-specific override if provided)
     searchSessionId,
@@ -270,7 +270,6 @@ export function stripDashboardContext(
     executionContext,
     style,
     className,
-    noPadding,
     viewMode,
     forceDSL,
     esqlVariables,

@@ -35,22 +35,18 @@ import type {
   LensApiCallbacks,
   LensHasEditPanel,
   LensSerializedState,
-  LensOverrides,
 } from '@kbn/lens-common';
 import type { PublishesSearchSession } from '@kbn/presentation-publishing/interfaces/fetch/publishes_search_session';
 import type { DefaultEmbeddableApi } from '@kbn/embeddable-plugin/public';
-import type { DynamicActionsSerializedState } from '@kbn/embeddable-enhanced-plugin/public';
+import type { DrilldownsState } from '@kbn/embeddable-plugin/server';
+import type { TimeRange } from '@kbn/es-query';
 
 /**
  * Panel-level state that should be persisted for by-value Lens panels.
  * Excludes runtime/inherited state from unified search and dashboard contexts.
  */
 type LensPersistableState = SerializedTitles & // title, description, hide_title
-  DynamicActionsSerializedState & // drilldowns, enhancements
-  LensOverrides & {
-    // overrides
-    disableTriggers?: boolean;
-  };
+  DrilldownsState & { timeRange?: TimeRange }; // panel-level time range override
 
 export type LensByValueSerializedAPIConfig = LensPersistableState & {
   // Temporarily allow both old and new attributes until all chart types are supported and feature flag removed
