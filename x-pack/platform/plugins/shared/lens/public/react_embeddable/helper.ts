@@ -251,9 +251,14 @@ type ExcludedDashboardStateKeys =
   | keyof LensSharedProps
   | keyof LensPanelProps;
 
-export function stripDashboardContext<
-  T extends Partial<Record<ExcludedDashboardStateKeys, unknown>>
->(state: T): Omit<T, ExcludedDashboardStateKeys> {
+/**
+ * The serialized state contains many properties that are inherited from the dashboard
+ * or are runtime-only (like executionContext) and should not be persisted at the panel
+ * level. This function strips those out to ensure only panel-level state is persisted.
+ */
+export function stripDashboardContext(
+  state: LensSerializedState
+): Omit<LensSerializedState, ExcludedDashboardStateKeys> {
   const {
     // LensUnifiedSearchContext (except timeRange which will be the panel-specific override if provided)
     searchSessionId,
