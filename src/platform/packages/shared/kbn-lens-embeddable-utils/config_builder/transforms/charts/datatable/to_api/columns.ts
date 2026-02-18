@@ -21,7 +21,7 @@ import { isMetricColumnESQL, isMetricColumnNoESQL } from '../helpers';
 import { stripUndefined } from '../../utils';
 
 type APIMetricRowCommonProps = Partial<
-  Pick<DatatableState['metrics'][number], 'visible' | 'alignment' | 'width'>
+  Pick<NonNullable<DatatableState['metrics']>[number], 'visible' | 'alignment' | 'width'>
 >;
 
 function buildCommonMetricRowProps(column: ColumnState): APIMetricRowCommonProps {
@@ -39,7 +39,7 @@ function buildCommonMetricRowProps(column: ColumnState): APIMetricRowCommonProps
  */
 function buildColorProps(
   column: ColumnState
-): Partial<Pick<DatatableState['metrics'][number], 'apply_color_to' | 'color'>> {
+): Partial<Pick<NonNullable<DatatableState['metrics']>[number], 'apply_color_to' | 'color'>> {
   const { colorMode, palette, colorMapping } = column;
   if (!colorMode || colorMode === 'none') return {};
 
@@ -64,7 +64,9 @@ function buildColorProps(
 }
 
 type APIMetricProps = APIMetricRowCommonProps &
-  Partial<Pick<DatatableState['metrics'][number], 'apply_color_to' | 'color' | 'summary'>>;
+  Partial<
+    Pick<NonNullable<DatatableState['metrics']>[number], 'apply_color_to' | 'color' | 'summary'>
+  >;
 
 function buildMetricsAPI(column: ColumnState): APIMetricProps {
   const { summaryRow, summaryLabel } = column;
