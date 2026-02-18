@@ -49,6 +49,8 @@ function buildCommonMetricRowState(
 }
 
 export function buildMetricsState(metrics: DatatableState['metrics']): ColumnState[] {
+  if (!metrics) return [];
+
   return metrics.map((metric, index) => {
     const columnId = getAccessorName(METRIC_ACCESSOR_PREFIX, index);
 

@@ -158,7 +158,7 @@ export function convertDatatableColumnsToAPI(
 ): DatatableColumnsNoESQLAndMapping | DatatableColumnsESQLAndMapping {
   const { columns } = visualization;
   if (columns.length === 0) {
-    throw new Error('Datatable must have at least one metric column');
+    throw new Error('Datatable must have at least one column');
   }
 
   // Used for the sorting columnId mapping during transformation to API format
@@ -256,12 +256,8 @@ export function convertDatatableColumnsToAPI(
     }
   }
 
-  if (metrics.length === 0) {
-    throw new Error('Datatable must have at least one metric column');
-  }
-
   return {
-    metrics,
+    ...(metrics.length > 0 ? { metrics } : {}),
     ...(rows.length > 0 ? { rows } : {}),
     ...(splitMetricsBy.length > 0 ? { split_metrics_by: splitMetricsBy } : {}),
     columnIdMapping,
