@@ -207,12 +207,12 @@ export function transformFromApiConfig(state: LensSerializedAPIConfig): LensSeri
  */
 export function transformToApiConfig(
   state: Omit<LensSerializedState, ExcludedInheritedStateKeys>
-): LensByValueSerializedAPIConfig {
+): LensSerializedAPIConfig {
   const { savedObjectId, attributes } = state;
 
   if (savedObjectId) {
     return {
-      attributes: undefined,
+      savedObjectId,
     };
   }
 
