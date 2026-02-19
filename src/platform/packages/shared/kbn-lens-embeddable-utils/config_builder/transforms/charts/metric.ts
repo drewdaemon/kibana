@@ -599,11 +599,17 @@ export function fromAPItoLensState(config: MetricState): MetricAttributesWithout
   const regularDataViews = Object.values(usedDataviews).filter(
     (v): v is { id: string; type: 'dataView' } => v.type === 'dataView'
   );
+  const hasTrendline =
+    isPrimaryMetric(config.metrics[0]) && config.metrics[0]?.background_chart?.type === 'trend';
+
   const references = regularDataViews.length
-    ? buildReferences({ [DEFAULT_LAYER_ID]: regularDataViews[0]?.id })
+    ? buildReferences({
+        [DEFAULT_LAYER_ID]: regularDataViews[0]?.id,
+        ...(hasTrendline ? { [TRENDLINE_LAYER_ID]: regularDataViews[0]?.id } : {}),
+      })
     : [];
 
-  const state = {
+  return {
     visualizationType: 'lnsMetric',
     ...getSharedChartAPIToLensState(config),
     references,
@@ -614,9 +620,6 @@ export function fromAPItoLensState(config: MetricState): MetricAttributesWithout
       adHocDataViews: config.dataset.type === 'index' ? adHocDataViews : {},
     },
   };
-
-  console.log('Generated Metric Lens config:', state);
-  return state;
 }
 
 export function fromLensStateToAPI(config: LensAttributes): MetricState {
@@ -641,10 +644,6 @@ export function fromLensStateToAPI(config: LensAttributes): MetricState {
       config.state.internalReferences
     ),
   };
-
-  console.log('Original attributes', config);
-
-  console.log('Generated Metric API configuration:', visualizationState);
 
   return visualizationState;
 }
