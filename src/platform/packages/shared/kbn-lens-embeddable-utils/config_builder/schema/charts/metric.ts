@@ -333,7 +333,7 @@ export const esqlMetricState = schema.object({
 export const metricStateSchema = schema.oneOf([metricStateSchemaNoESQL, esqlMetricState], {
   meta: { id: 'metricChartSchema' },
   validate: ({ metrics, breakdown_by }) => {
-    const primaryMetric = metrics.find((metric) => 'type' in metric && metric.type === 'primary');
+    const primaryMetric = metrics.find((metric) => isPrimaryMetric(metric));
 
     if (primaryMetric?.color?.type === 'dynamic' && primaryMetric.color.range === 'percentage') {
       if (!breakdown_by && !(primaryMetric.background_chart?.type === 'bar')) {
