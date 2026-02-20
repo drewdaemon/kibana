@@ -172,3 +172,21 @@ export const metricAPIWithTermsRankedBySecondary = {
     },
   },
 } as MetricState;
+
+export const trendlineMetricAPIAttributes = {
+  type: 'metric',
+  title: 'Metric - Trendline',
+  description: 'Metric with trendline background chart',
+  dataset: { type: 'dataView', id: 'testId' },
+  metrics: [
+    {
+      type: 'primary',
+      operation: 'count',
+      empty_as_null: true,
+      background_chart: {
+        type: 'trend',
+        time_field: 'timestamp',
+      },
+    },
+  ],
+} as MetricState;
