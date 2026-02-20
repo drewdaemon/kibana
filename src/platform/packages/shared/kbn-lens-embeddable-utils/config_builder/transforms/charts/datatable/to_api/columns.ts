@@ -258,6 +258,10 @@ export function convertDatatableColumnsToAPI(
     }
   }
 
+  if (metrics.length === 0 && rows.length === 0) {
+    throw new Error('Datatable must have at least one column');
+  }
+
   return {
     ...(metrics.length > 0 ? { metrics } : {}),
     ...(rows.length > 0 ? { rows } : {}),
