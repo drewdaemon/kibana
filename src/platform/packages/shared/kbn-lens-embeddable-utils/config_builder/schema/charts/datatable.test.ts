@@ -470,6 +470,58 @@ describe('Datatable Schema', () => {
       expect(() => datatableStateSchema.validate(input)).toThrow();
     });
 
+    it('throws when esql datatable has no metrics and no rows', () => {
+      const input: Omit<DatatableWithoutDefaultsConfig, 'metrics' | 'rows'> = {
+        type: 'datatable',
+        dataset: {
+          type: 'esql',
+          query: 'FROM my-index | LIMIT 100',
+        },
+      };
+
+      expect(() => datatableStateSchema.validate(input)).toThrow(
+        'Datatable must have at least one column'
+      );
+    });
+
+    it('throws on empty metrics array for esql', () => {
+      const input: DatatableWithoutDefaultsConfig = {
+        type: 'datatable',
+        dataset: {
+          type: 'esql',
+          query: 'FROM my-index | LIMIT 100',
+        },
+        metrics: [],
+        rows: [
+          {
+            operation: 'value',
+            column: 'location',
+          },
+        ],
+      };
+
+      expect(() => datatableStateSchema.validate(input)).toThrow();
+    });
+
+    it('throws on empty rows array for esql', () => {
+      const input: DatatableWithoutDefaultsConfig = {
+        type: 'datatable',
+        dataset: {
+          type: 'esql',
+          query: 'FROM my-index | LIMIT 100',
+        },
+        metrics: [
+          {
+            operation: 'value',
+            column: 'bytes',
+          },
+        ],
+        rows: [],
+      };
+
+      expect(() => datatableStateSchema.validate(input)).toThrow();
+    });
+
     it('throws when using invalid sorting index', () => {
       const input: DatatableWithoutDefaultsConfig = {
         ...baseDatatableConfig,

@@ -449,7 +449,18 @@ export const datatableStateSchemaESQL = schema.object(
     ),
   },
   {
-    validate: validateSortBy,
+    validate: (arg) => {
+      const sortByError = validateSortBy(arg);
+      if (sortByError) {
+        return sortByError;
+      }
+
+      const { metrics, rows } = arg;
+
+      if (!metrics && !rows) {
+        return 'Datatable must have at least one column';
+      }
+    },
     meta: {
       id: 'datatableESQL',
       description: 'Datatable state configuration for ES|QL queries',
