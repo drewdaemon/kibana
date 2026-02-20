@@ -286,10 +286,10 @@ function buildFromFormBasedLayer(
     throw Error('The primary metric must refer to a metric operation.');
   }
 
-  let trendLineTimeField: string | undefined;
+  let trendlineTimeField: string | undefined;
   if (trendlineLayer && visualization.trendlineTimeAccessor) {
-    const trendLineTimeColumn = trendlineLayer.columns[visualization.trendlineTimeAccessor];
-    trendLineTimeField = (trendLineTimeColumn as DateHistogramIndexPatternColumn | undefined)
+    const trendlineTimeColumn = trendlineLayer.columns[visualization.trendlineTimeAccessor];
+    trendlineTimeField = (trendlineTimeColumn as DateHistogramIndexPatternColumn | undefined)
       ?.sourceField;
   }
 
@@ -357,14 +357,14 @@ function buildFromFormBasedLayer(
         : {}),
     },
     visualization,
-    trendLineTimeField
+    trendlineTimeField
   );
 }
 
 function enrichConfigurationWithVisualizationProperties(
   state: WritableMetricStateWithoutDataset,
   visualization: MetricVisualizationState,
-  trendLineTimeField?: string
+  trendlineTimeField?: string
 ): WritableMetricStateWithoutDataset {
   const [primaryMetric, secondaryMetric] = state.metrics;
 
@@ -379,8 +379,8 @@ function enrichConfigurationWithVisualizationProperties(
       primaryMetric.sub_label = visualization.subtitle;
     }
 
-    if (visualization.trendlineLayerType && trendLineTimeField) {
-      primaryMetric.background_chart = { type: 'trend', time_field: trendLineTimeField };
+    if (visualization.trendlineLayerType && trendlineTimeField) {
+      primaryMetric.background_chart = { type: 'trend', time_field: trendlineTimeField };
     }
 
     if (visualization.color) {
@@ -498,15 +498,15 @@ function buildFormBasedLayer(layer: MetricStateNoESQL): FormBasedPersistedState[
   };
 
   const defaultLayer = layers[DEFAULT_LAYER_ID];
-  const trendLineLayer = layers[TRENDLINE_LAYER_ID];
+  const trendlineLayer = layers[TRENDLINE_LAYER_ID];
 
-  if (trendLineLayer) {
-    trendLineLayer.linkToLayers = [DEFAULT_LAYER_ID];
+  if (trendlineLayer) {
+    trendlineLayer.linkToLayers = [DEFAULT_LAYER_ID];
   }
 
   addLayerColumn(defaultLayer, getAccessorName('metric'), newPrimaryColumns);
 
-  if (trendLineLayer && primaryMetric.background_chart?.type === 'trend') {
+  if (trendlineLayer && primaryMetric.background_chart?.type === 'trend') {
     const op: LensApiDateHistogramOperation = {
       field: primaryMetric.background_chart.time_field,
       operation: 'date_histogram',
@@ -514,10 +514,10 @@ function buildFormBasedLayer(layer: MetricStateNoESQL): FormBasedPersistedState[
       suggested_interval: 'auto',
       use_original_time_range: true,
     };
-    const trendLineColumn = fromBucketLensApiToLensState(op, []);
+    const trendlineColumn = fromBucketLensApiToLensState(op, []);
 
-    addLayerColumn(trendLineLayer, `${ACCESSOR}_trendline`, newPrimaryColumns);
-    addLayerColumn(trendLineLayer, HISTOGRAM_COLUMN_NAME, trendLineColumn, true);
+    addLayerColumn(trendlineLayer, `${ACCESSOR}_trendline`, newPrimaryColumns);
+    addLayerColumn(trendlineLayer, HISTOGRAM_COLUMN_NAME, trendlineColumn, true);
   }
 
   if (layer.breakdown_by) {
@@ -627,7 +627,7 @@ export function fromLensStateToAPI(config: LensAttributes): MetricState {
   const visualization = state.visualization as MetricVisualizationState;
   const layers = getDatasourceLayers(state);
   const [layerId, layer] = getLensStateLayer(layers, visualization.layerId);
-  const trendLineLayer = visualization.trendlineLayerId
+  const trendlineLayer = visualization.trendlineLayerId
     ? layers[visualization.trendlineLayerId]
     : undefined;
 
@@ -638,7 +638,7 @@ export function fromLensStateToAPI(config: LensAttributes): MetricState {
       layer,
       layerId ?? DEFAULT_LAYER_ID,
       // this is mostly a type-guard... trendlines are only supported for form based metric visualizations
-      trendLineLayer && !isTextBasedLayer(trendLineLayer) ? trendLineLayer : undefined,
+      trendlineLayer && !isTextBasedLayer(trendlineLayer) ? trendlineLayer : undefined,
       config.state.adHocDataViews ?? {},
       config.references,
       config.state.internalReferences
