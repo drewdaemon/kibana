@@ -23,6 +23,8 @@ import {
   complexESQLMetricAPIAttributes,
   metricAPIWithTermsRankedBySecondary,
   trendlineMetricAPIAttributes,
+  trendlineWithSecondaryMetricAPIAttributes,
+  trendlineWithBreakdownMetricAPIAttributes,
 } from './lens_api_config.mock';
 
 describe('Metric', () => {
@@ -66,6 +68,14 @@ describe('Metric', () => {
 
     it('should convert a metric with trendline', () => {
       validateAPIConverter(trendlineMetricAPIAttributes, metricStateSchema);
+    });
+
+    it('should convert a metric with trendline and secondary metric', () => {
+      validateAPIConverter(trendlineWithSecondaryMetricAPIAttributes, metricStateSchema);
+    });
+
+    it('should convert a metric with trendline and breakdown', () => {
+      validateAPIConverter(trendlineWithBreakdownMetricAPIAttributes, metricStateSchema);
     });
   });
 

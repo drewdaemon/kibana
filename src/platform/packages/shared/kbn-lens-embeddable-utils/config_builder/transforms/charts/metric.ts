@@ -533,11 +533,19 @@ function buildFormBasedLayer(layer: MetricStateNoESQL): FormBasedPersistedState[
       ]
     );
     addLayerColumn(defaultLayer, columnName, breakdownColumn, true);
+
+    if (trendlineLayer) {
+      addLayerColumn(trendlineLayer, `${columnName}_trendline`, breakdownColumn, true);
+    }
   }
 
   if (newSecondaryColumns?.length) {
     const columnName = getAccessorName('secondary');
     addLayerColumn(defaultLayer, columnName, newSecondaryColumns);
+
+    if (trendlineLayer) {
+      addLayerColumn(trendlineLayer, `${columnName}_trendline`, newSecondaryColumns);
+    }
   }
 
   if (primaryMetric.background_chart?.type === 'bar') {
