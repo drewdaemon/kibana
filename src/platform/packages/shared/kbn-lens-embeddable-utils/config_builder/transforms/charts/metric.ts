@@ -637,8 +637,11 @@ export function fromLensStateToAPI(config: LensAttributes): MetricState {
       visualization,
       layer,
       layerId ?? DEFAULT_LAYER_ID,
-      // this is mostly a type-guard... trendlines are only supported for form based metric visualizations
-      trendlineLayer && !isTextBasedLayer(trendlineLayer) ? trendlineLayer : undefined,
+      trendlineLayer &&
+        // this is mostly a type-guard... trendlines are only supported for form based metric visualizations
+        !isTextBasedLayer(trendlineLayer)
+        ? trendlineLayer
+        : undefined,
       config.state.adHocDataViews ?? {},
       config.references,
       config.state.internalReferences
