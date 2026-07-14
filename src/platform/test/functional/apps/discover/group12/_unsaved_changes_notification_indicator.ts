@@ -147,7 +147,7 @@ export default function ({ getService, getPageObjects }: FtrProviderContext) {
     });
 
     /**
-     * Migration recommendation: DELETE - not an important case, covered by state comparator unit tests.
+     * Migration recommendation: pare down and merge with the above block - covered by state comparator unit tests, so let's just do this minimally.
      */
     it('should hide the notification indicator once user manually reverts changes', async () => {
       await discover.loadSavedSearch(SAVED_SEARCH_NAME);
