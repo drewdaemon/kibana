@@ -65,7 +65,7 @@ export default function ({ getService, getPageObjects }: FtrProviderContext) {
 
     describe('initial columns', function () {
       it('should render initial columns for non-transformational commands correctly', async () => {
-        discover.loadSavedSearch(SAVED_SEARCH_NON_TRANSFORMATIONAL_INITIAL_COLUMNS);
+        await discover.loadSavedSearch(SAVED_SEARCH_NON_TRANSFORMATIONAL_INITIAL_COLUMNS);
         expect(await dataGrid.getHeaderFields()).to.eql(['@timestamp', 'Summary']);
       });
 
