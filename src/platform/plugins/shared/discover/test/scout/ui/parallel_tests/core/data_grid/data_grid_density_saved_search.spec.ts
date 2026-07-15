@@ -31,7 +31,7 @@ spaceTest.describe(
       // Saving over a saved search requires write access.
       await browserAuth.loginAsPrivilegedUser();
       await pageObjects.discover.goto({ queryMode: 'classic' });
-      await pageObjects.dataGrid.waitUntilSearchingHasFinished();
+      await pageObjects.dataGrid.waitForLoad();
       await pageObjects.dataGrid.waitForDocTableRendered();
     });
 

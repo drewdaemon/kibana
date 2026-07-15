@@ -60,7 +60,7 @@ spaceTest.describe(
       await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
       await browserAuth.loginAsViewer();
       await pageObjects.discover.goto({ queryMode: 'classic' });
-      await pageObjects.dataGrid.waitUntilSearchingHasFinished();
+      await pageObjects.dataGrid.waitForLoad();
       await pageObjects.dataGrid.waitForDocTableRendered();
     });
 
