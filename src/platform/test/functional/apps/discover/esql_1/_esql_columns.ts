@@ -130,7 +130,7 @@ export default function ({ getService, getPageObjects }: FtrProviderContext) {
         expect(await dataGrid.getHeaderFields()).to.eql(['@timestamp', 'bytes']);
 
         // different index pattern => reset columns
-        await monacoEditor.setCodeEditorValue('from logstash-* | limit 500');
+        await monacoEditor.setCodeEditorValue('from logs* | limit 500');
         await testSubjects.click('querySubmitButton');
         await header.waitUntilLoadingHasFinished();
         await discover.waitUntilSearchingHasFinished();
