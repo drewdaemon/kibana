@@ -123,6 +123,11 @@ export class DataGrid {
     return this.page.testSubj.locator(`dataGridHeaderCell-${name}`);
   }
 
+  async getColumnTitles(): Promise<string[]> {
+    const titles = await this.page.locator('.euiDataGridHeaderCell__content').allInnerTexts();
+    return titles.map((title) => title.trim());
+  }
+
   async getColumnWidth(field: string): Promise<number> {
     const header = this.getColumnHeader(field);
     await header.waitFor({ state: 'visible' });

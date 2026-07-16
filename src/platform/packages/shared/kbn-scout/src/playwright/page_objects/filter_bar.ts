@@ -34,6 +34,7 @@ export class FilterBar {
   constructor(private readonly page: ScoutPage) {}
 
   async addFilter(options: FilterCreationOptions) {
+    const previousCount = await this.getFilterCount();
     await this.page.testSubj.click('addFilter');
     await this.page.testSubj.waitForSelector('addFilterPopover');
     // set field name
@@ -67,10 +68,9 @@ export class FilterBar {
       'Filter popover should close after saving'
     ).toBeHidden();
 
-    await expect(
-      this.page.testSubj.locator('^filter-badge'),
-      'New filter badge should be displayed'
-    ).toBeVisible();
+    await expect
+      .poll(() => this.getFilterCount(), { message: 'New filter badge should be displayed' })
+      .toBeGreaterThan(previousCount);
   }
 
   async removeFilter(field: string) {
