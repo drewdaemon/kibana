@@ -52,14 +52,14 @@ export class FilterBar {
       options.operator
     );
     await this.page.testSubj.click(`filterOperatorOption-${options.operator}`);
-    // set value (not applicable for 'exists' / 'does not exist' operators)
-    if (options.operator !== 'exists' && options.operator !== 'does not exist') {
+    // set value
+    if (options.value !== undefined) {
       const filterParamsInput = this.page.locator('[data-test-subj="filterParams"] input');
       await expect(filterParamsInput).not.toHaveAttribute('disabled');
       // await this.page.waitForTimeout(100); // wait for input to be ready
       await expect(filterParamsInput).toBeEditable();
       await filterParamsInput.focus();
-      await this.page.typeWithDelay('[data-test-subj="filterParams"] input', options.value ?? '');
+      await this.page.typeWithDelay('[data-test-subj="filterParams"] input', options.value);
     }
     // save filter and wait for popover to close
     await this.page.testSubj.click('saveFilter');
