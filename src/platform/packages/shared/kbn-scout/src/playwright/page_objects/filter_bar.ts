@@ -13,7 +13,7 @@ import { expect } from '..';
 interface FilterCreationOptions {
   field: string;
   operator: 'is' | 'is not' | 'is one of' | 'is not one of' | 'exists' | 'does not exist';
-  value: string;
+  value?: string;
 }
 
 interface FilterFormOptions {
@@ -51,13 +51,15 @@ export class FilterBar {
       options.operator
     );
     await this.page.testSubj.click(`filterOperatorOption-${options.operator}`);
-    // set value
-    const filterParamsInput = this.page.locator('[data-test-subj="filterParams"] input');
-    await expect(filterParamsInput).not.toHaveAttribute('disabled');
-    // await this.page.waitForTimeout(100); // wait for input to be ready
-    await expect(filterParamsInput).toBeEditable();
-    await filterParamsInput.focus();
-    await this.page.typeWithDelay('[data-test-subj="filterParams"] input', options.value);
+    // set value (not applicable for 'exists' / 'does not exist' operators)
+    if (options.operator !== 'exists' && options.operator !== 'does not exist') {
+      const filterParamsInput = this.page.locator('[data-test-subj="filterParams"] input');
+      await expect(filterParamsInput).not.toHaveAttribute('disabled');
+      // await this.page.waitForTimeout(100); // wait for input to be ready
+      await expect(filterParamsInput).toBeEditable();
+      await filterParamsInput.focus();
+      await this.page.typeWithDelay('[data-test-subj="filterParams"] input', options.value ?? '');
+    }
     // save filter and wait for popover to close
     await this.page.testSubj.click('saveFilter');
     await expect(

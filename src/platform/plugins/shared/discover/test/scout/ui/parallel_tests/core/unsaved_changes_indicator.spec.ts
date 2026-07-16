@@ -1,0 +1,181 @@
+/*
+ * Copyright Elasticsearch B.V. and/or licensed to Elasticsearch B.V. under one
+ * or more contributor license agreements. Licensed under the "Elastic License
+ * 2.0", the "GNU Affero General Public License v3.0 only", and the "Server Side
+ * Public License v 1"; you may not use this file except in compliance with, at
+ * your election, the "Elastic License 2.0", the "GNU Affero General Public
+ * License v3.0 only", or the "Server Side Public License, v 1".
+ */
+
+import type { ScoutPage } from '@kbn/scout';
+import { expect } from '@kbn/scout/ui';
+import { spaceTest, tags } from '../../fixtures/common';
+
+const SAVED_SEARCH_NAME = 'test saved search';
+const SAVED_SEARCH_WITH_FILTERS_NAME = 'test saved search with filters';
+
+const getColumnTitles = async (page: ScoutPage): Promise<string[]> => {
+  const titles = await page.locator('.euiDataGridHeaderCell__content').allInnerTexts();
+  return titles.map((title) => title.trim());
+};
+
+spaceTest.describe('Discover unsaved changes indicator', { tag: tags.deploymentAgnostic }, () => {
+  spaceTest.beforeAll(async ({ discoverScoutSpace }) => {
+    await discoverScoutSpace.setupDiscoverDefaults();
+  });
+
+  spaceTest.beforeEach(async ({ browserAuth, pageObjects }) => {
+    await browserAuth.loginAsPrivilegedUser();
+    await pageObjects.discover.goto({ queryMode: 'classic' });
+    await pageObjects.discover.waitUntilTabIsLoaded();
+  });
+
+  spaceTest.afterAll(async ({ discoverScoutSpace }) => {
+    await discoverScoutSpace.teardownDiscoverDefaults();
+  });
+
+  spaceTest(
+    'should not show the indicator initially nor after changes to a draft saved search',
+    async ({ pageObjects }) => {
+      await expect(pageObjects.discover.unsavedChangesIndicator()).toBeHidden();
+
+      await pageObjects.unifiedFieldList.clickFieldListItemAdd('bytes');
+      await pageObjects.dataGrid.waitForLoad();
+
+      await expect(pageObjects.discover.unsavedChangesIndicator()).toBeHidden();
+    }
+  );
+
+  spaceTest(
+    'should show the indicator only after changes to a persisted saved search',
+    async ({ pageObjects }) => {
+      await pageObjects.discover.saveSearch(SAVED_SEARCH_NAME);
+      await pageObjects.dataGrid.waitForLoad();
+
+      await expect(pageObjects.discover.unsavedChangesIndicator()).toBeHidden();
+
+      await pageObjects.unifiedFieldList.clickFieldListItemAdd('bytes');
+      await pageObjects.dataGrid.waitForLoad();
+
+      await expect(pageObjects.discover.unsavedChangesIndicator()).toBeVisible();
+
+      await pageObjects.discover.saveUnsavedChanges();
+
+      await expect(pageObjects.discover.unsavedChangesIndicator()).toBeHidden();
+    }
+  );
+
+  spaceTest(
+    'should not show the indicator after loading a saved search, only after changes',
+    async ({ pageObjects }) => {
+      await pageObjects.discover.loadSavedSearch(SAVED_SEARCH_NAME);
+      await pageObjects.discover.waitUntilTabIsLoaded();
+
+      await expect(pageObjects.discover.unsavedChangesIndicator()).toBeHidden();
+
+      await pageObjects.discover.chooseBreakdownField('_index');
+      await pageObjects.dataGrid.waitForLoad();
+
+      await expect(pageObjects.discover.unsavedChangesIndicator()).toBeVisible();
+    }
+  );
+
+  spaceTest(
+    'should not show the indicator after loading an ES|QL saved search, only after changes',
+    async ({ pageObjects }) => {
+      await pageObjects.discover.loadSavedSearch('ES|QL Discover Session');
+      await pageObjects.discover.waitUntilTabIsLoaded();
+
+      await expect(pageObjects.discover.unsavedChangesIndicator()).toBeHidden();
+
+      await pageObjects.discover.codeEditor.setCodeEditorValue('from logstash-* | limit 100');
+      await pageObjects.discover.submitQuery();
+      await pageObjects.discover.waitUntilSearchingHasFinished();
+
+      await expect(pageObjects.discover.unsavedChangesIndicator()).toBeVisible();
+    }
+  );
+
+  spaceTest('should allow reverting changes', async ({ page, pageObjects }) => {
+    await pageObjects.discover.loadSavedSearch(SAVED_SEARCH_NAME);
+    await pageObjects.discover.waitUntilTabIsLoaded();
+
+    await expect(pageObjects.discover.unsavedChangesIndicator()).toBeHidden();
+
+    await expect.poll(() => getColumnTitles(page)).toStrictEqual(['@timestamp', 'bytes']);
+    await pageObjects.unifiedFieldList.clickFieldListItemAdd('extension');
+    await pageObjects.dataGrid.waitForLoad();
+    await expect
+      .poll(() => getColumnTitles(page))
+      .toStrictEqual(['@timestamp', 'bytes', 'extension']);
+    await expect(pageObjects.discover.unsavedChangesIndicator()).toBeVisible();
+
+    await pageObjects.discover.revertUnsavedChanges();
+    await expect.poll(() => getColumnTitles(page)).toStrictEqual(['@timestamp', 'bytes']);
+    await expect(pageObjects.discover.unsavedChangesIndicator()).toBeHidden();
+  });
+
+  spaceTest(
+    'should hide the indicator once user manually reverts changes',
+    async ({ page, pageObjects }) => {
+      await pageObjects.discover.loadSavedSearch(SAVED_SEARCH_NAME);
+      await pageObjects.discover.waitUntilTabIsLoaded();
+
+      await expect(pageObjects.discover.unsavedChangesIndicator()).toBeHidden();
+
+      // changes to columns
+      await expect.poll(() => getColumnTitles(page)).toStrictEqual(['@timestamp', 'bytes']);
+      await pageObjects.unifiedFieldList.clickFieldListItemAdd('extension');
+      await pageObjects.dataGrid.waitForLoad();
+
+      expect(await getColumnTitles(page)).toStrictEqual(['@timestamp', 'bytes', 'extension']);
+      await expect(pageObjects.discover.unsavedChangesIndicator()).toBeVisible();
+
+      await pageObjects.unifiedFieldList.clickFieldListItemRemove('extension');
+      await pageObjects.dataGrid.waitForLoad();
+      await expect.poll(() => getColumnTitles(page)).toStrictEqual(['@timestamp', 'bytes']);
+      await expect(pageObjects.discover.unsavedChangesIndicator()).toBeHidden();
+
+      // changes to breakdown field
+      await pageObjects.discover.chooseBreakdownField('_index');
+      await pageObjects.dataGrid.waitForLoad();
+      await expect(pageObjects.discover.unsavedChangesIndicator()).toBeVisible();
+
+      await pageObjects.discover.clearBreakdownField();
+      await pageObjects.dataGrid.waitForLoad();
+      await expect(pageObjects.discover.unsavedChangesIndicator()).toBeHidden();
+    }
+  );
+
+  spaceTest(
+    'should not show the indicator after pinning a filter, but should appear after disabling a filter',
+    async ({ pageObjects }) => {
+      await pageObjects.filterBar.addFilter({
+        field: 'extension',
+        operator: 'is',
+        value: 'png',
+      });
+      await pageObjects.filterBar.addFilter({ field: 'bytes', operator: 'exists' });
+      await pageObjects.discover.saveSearch(SAVED_SEARCH_WITH_FILTERS_NAME);
+      await pageObjects.dataGrid.waitForLoad();
+
+      await expect(pageObjects.discover.unsavedChangesIndicator()).toBeHidden();
+
+      await pageObjects.filterBar.toggleFilterPinned('extension');
+      await pageObjects.dataGrid.waitForLoad();
+
+      await expect(pageObjects.discover.unsavedChangesIndicator()).toBeHidden();
+
+      await pageObjects.filterBar.toggleFilterNegated('bytes');
+      await pageObjects.dataGrid.waitForLoad();
+
+      await expect(pageObjects.discover.unsavedChangesIndicator()).toBeVisible();
+
+      await pageObjects.discover.revertUnsavedChanges();
+      await expect(pageObjects.discover.unsavedChangesIndicator()).toBeHidden();
+
+      expect(await pageObjects.filterBar.getFilterCount()).toBe(2);
+      expect(await pageObjects.discover.getHitCountInt()).toBe(1373);
+    }
+  );
+});
