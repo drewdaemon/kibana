@@ -34,12 +34,12 @@ spaceTest.describe('Discover view mode toggle', { tag: '@local-stateful-classic'
   });
 
   spaceTest('should show an error callout on invalid query', async ({ page, pageObjects }) => {
-    await page.testSubj.fill('queryInput', '@message::');
+    await pageObjects.queryBar.setQuery('@message::');
     await pageObjects.discover.submitQuery();
     await pageObjects.discover.waitUntilSearchingHasFinished();
     await expect(page.testSubj.locator('discoverErrorCalloutTitle')).toBeVisible();
 
-    await page.testSubj.fill('queryInput', '');
+    await pageObjects.queryBar.setQuery('');
     await pageObjects.discover.submitQuery();
     await pageObjects.discover.waitUntilSearchingHasFinished();
     await expect(page.testSubj.locator('discoverErrorCalloutTitle')).toBeHidden();
