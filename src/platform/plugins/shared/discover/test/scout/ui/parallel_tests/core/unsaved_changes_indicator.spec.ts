@@ -59,7 +59,10 @@ spaceTest.describe('Discover unsaved changes indicator', { tag: tags.deploymentA
   spaceTest(
     'should not show the indicator after loading a saved search, only after changes',
     async ({ pageObjects }) => {
-      await pageObjects.discover.loadSavedSearch(SAVED_SEARCH_NAME);
+      const savedSearchName = 'test saved search for breakdown';
+      await pageObjects.discover.saveSearch(savedSearchName);
+      await pageObjects.discover.clickNewSearch();
+      await pageObjects.discover.loadSavedSearch(savedSearchName);
 
       await expect(pageObjects.discover.unsavedChangesIndicator()).toBeHidden();
 
@@ -84,7 +87,12 @@ spaceTest.describe('Discover unsaved changes indicator', { tag: tags.deploymentA
   );
 
   spaceTest('should allow reverting changes', async ({ pageObjects }) => {
-    await pageObjects.discover.loadSavedSearch(SAVED_SEARCH_NAME);
+    const savedSearchName = 'test saved search for revert';
+    await pageObjects.discover.saveSearch(savedSearchName);
+    await pageObjects.unifiedFieldList.clickFieldListItemAdd('bytes');
+    await pageObjects.discover.saveUnsavedChanges();
+    await pageObjects.discover.clickNewSearch();
+    await pageObjects.discover.loadSavedSearch(savedSearchName);
 
     await expect(pageObjects.discover.unsavedChangesIndicator()).toBeHidden();
 
@@ -106,7 +114,12 @@ spaceTest.describe('Discover unsaved changes indicator', { tag: tags.deploymentA
   spaceTest(
     'should hide the indicator once user manually reverts changes',
     async ({ pageObjects }) => {
-      await pageObjects.discover.loadSavedSearch(SAVED_SEARCH_NAME);
+      const savedSearchName = 'test saved search for manual revert';
+      await pageObjects.discover.saveSearch(savedSearchName);
+      await pageObjects.unifiedFieldList.clickFieldListItemAdd('bytes');
+      await pageObjects.discover.saveUnsavedChanges();
+      await pageObjects.discover.clickNewSearch();
+      await pageObjects.discover.loadSavedSearch(savedSearchName);
       await pageObjects.discover.waitUntilTabIsLoaded();
 
       await expect(pageObjects.discover.unsavedChangesIndicator()).toBeHidden();
