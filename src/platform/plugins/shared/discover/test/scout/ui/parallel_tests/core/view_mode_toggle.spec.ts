@@ -45,10 +45,6 @@ spaceTest.describe('Discover view mode toggle', { tag: '@local-stateful-classic'
     await expect(page.testSubj.locator('discoverErrorCalloutTitle')).toBeHidden();
   });
 
-  spaceTest('should not show Field Statistics tab', async ({ page }) => {
-    await expect(page.testSubj.locator('dscViewModeToggle')).toBeVisible();
-  });
-
   spaceTest('should hide view mode toggle in fullscreen mode', async ({ page }) => {
     await expect(page.testSubj.locator('dscViewModeToggle')).toBeVisible();
 
