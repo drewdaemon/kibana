@@ -94,6 +94,28 @@ export default function ({ getService, getPageObjects }: FtrProviderContext) {
       expect(await dataViews.getSelectedName()).to.be('logstash*');
     });
 
+    it('should save Discover session with ad-hoc data view first time', async () => {
+      const prevDataViewId = await discover.getCurrentDataViewId();
+
+      await discover.saveSearch('logstash*-ss');
+      await header.waitUntilLoadingHasFinished();
+
+      const newDataViewId = await discover.getCurrentDataViewId();
+
+      expect(prevDataViewId).to.equal(newDataViewId);
+    });
+
+    it('should save new Discover session copy with ad-hoc data view', async () => {
+      const prevDataViewId = await discover.getCurrentDataViewId();
+
+      await discover.saveSearch('logstash*-ss-new', true);
+      await header.waitUntilLoadingHasFinished();
+
+      const newDataViewId = await discover.getCurrentDataViewId();
+
+      expect(prevDataViewId).not.to.equal(newDataViewId);
+    });
+
     it('search results should be different after data view update', async () => {
       await dataViews.createFromSearchBar({
         name: 'logst',
