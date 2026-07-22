@@ -282,7 +282,7 @@ export default function ({ getService, getPageObjects }: FtrProviderContext) {
     });
 
     /**
-     * Migration recommendation: MIGRATE TO SCOUT. This is testing the integration of core functionality.
+     * Migration recommendation: MIGRATE TO SCOUT. This is some heavy testing, but it's a pretty core feature. Look at maybe getting around some of the addRuntimeField and other UI-based fixture creation calls with API calls instead. Most of these test should look like "set up the scenario as fast as possible, load Discover, check the fields, done"
      */
     describe('renders field groups', function () {
       it('should show field list groups excluding subfields', async function () {
