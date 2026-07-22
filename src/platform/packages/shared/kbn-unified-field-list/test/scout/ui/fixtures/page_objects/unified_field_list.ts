@@ -195,14 +195,10 @@ export class UnifiedFieldList {
 
     await this.page.testSubj.click(`fieldToggle-${field}`);
 
-    // Wait for field to be deselected
-    await this.page.waitForFunction(async (fieldName) => {
-      const selectedSection = document.querySelector(
-        '[data-test-subj="fieldListGroupedSelectedFields"]'
-      );
-      if (!selectedSection) return true;
-      return !selectedSection.querySelector(`[data-test-subj="field-${fieldName}"]`);
-    }, field);
+    await this.page.testSubj
+      .locator('fieldListGroupedSelectedFields')
+      .locator(`[data-test-subj="field-${field}"]`)
+      .waitFor({ state: 'hidden' });
   }
 
   /**
