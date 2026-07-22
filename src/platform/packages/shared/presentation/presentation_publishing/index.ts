@@ -27,6 +27,10 @@ export {
   type CanAccessViewMode,
 } from './interfaces/can_access_view_mode';
 export {
+  apiCanCancelRequests,
+  type CanCancelRequests,
+} from './interfaces/can_cancel_requests';
+export {
   apiCanLockHoverActions,
   type CanLockHoverActions,
 } from './interfaces/can_lock_hover_actions';
