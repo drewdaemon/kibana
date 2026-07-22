@@ -79,14 +79,15 @@ describe('fetchAndValidate$ ES|QL filter wiring', () => {
     const searchTechnique$ = new BehaviorSubject<'wildcard' | 'prefix' | 'exact'>('wildcard');
     const sort$ = new BehaviorSubject<unknown>({ by: '_count', direction: 'desc' });
 
-    const subscription = fetchAndValidate$({
+    const { suggestions$ } = fetchAndValidate$({
       api,
       requestSize$: requestSize$ as any,
       runPastTimeout$: runPastTimeout$ as any,
       selectedOptions$: selectedOptions$ as any,
       searchTechnique$: searchTechnique$ as any,
       sort$: sort$ as any,
-    }).subscribe(() => {});
+    });
+    const subscription = suggestions$.subscribe(() => {});
 
     await new Promise((resolve) => setTimeout(resolve, 200));
     expect(fetchSpy).toHaveBeenCalledTimes(1);
@@ -116,14 +117,15 @@ describe('fetchAndValidate$ ES|QL filter wiring', () => {
     const searchTechnique$ = new BehaviorSubject<'wildcard' | 'prefix' | 'exact'>('wildcard');
     const sort$ = new BehaviorSubject<unknown>({ by: '_count', direction: 'desc' });
 
-    const subscription = fetchAndValidate$({
+    const { suggestions$ } = fetchAndValidate$({
       api,
       requestSize$: requestSize$ as any,
       runPastTimeout$: runPastTimeout$ as any,
       selectedOptions$: selectedOptions$ as any,
       searchTechnique$: searchTechnique$ as any,
       sort$: sort$ as any,
-    }).subscribe(() => {});
+    });
+    const subscription = suggestions$.subscribe(() => {});
 
     await new Promise((resolve) => setTimeout(resolve, 200));
 
