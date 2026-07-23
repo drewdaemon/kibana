@@ -9,7 +9,7 @@
 
 /**
  * Migration recommendation: Convert to unit tests!
- * 
+ *
  * Leave a single smoke test that does something like the following
  * - Run an ES|QL query that triggers group by
  * - Confirm group by is displayed, maybe check a couple elements like group count and opening context menu
