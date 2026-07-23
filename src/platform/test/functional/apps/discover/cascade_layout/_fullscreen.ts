@@ -8,7 +8,7 @@
  */
 
 /**
- * Migration recommendation: MIGRATE TO SCOUT.
+ * Migration recommendation: Pare these way down. Cover most functionality with unit tests. Leave a single smoke test.
  */
 
 import expect from '@kbn/expect';
