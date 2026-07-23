@@ -135,9 +135,10 @@ export class DataGrid {
     return this.page.testSubj.locator(`dataGridHeaderCell-${name}`);
   }
 
-  async getColumnTitles(): Promise<string[]> {
-    const titles = await this.page.locator('.euiDataGridHeaderCell__content').allInnerTexts();
-    return titles.map((title) => title.trim());
+  async getColumnTitles(
+    scope: Locator = this.page.testSubj.locator('docTable')
+  ): Promise<string[]> {
+    return this.readHeaderLabels(scope, Number.MAX_SAFE_INTEGER);
   }
 
   async getColumnWidth(field: string): Promise<number> {
