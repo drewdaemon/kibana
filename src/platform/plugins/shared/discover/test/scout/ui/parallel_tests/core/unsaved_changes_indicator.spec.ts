@@ -8,6 +8,7 @@
  */
 
 import { expect } from '@kbn/scout/ui';
+import { VIEW_MODE } from '../../../../../common/constants';
 import { spaceTest, tags, testData, type DiscoverScoutSpace } from '../../fixtures/common';
 
 const SAVED_SEARCH_NAME = 'test saved search';
@@ -32,7 +33,7 @@ const createSavedSearch = async (
         sort: [{ name: '@timestamp', direction: 'desc' }],
         query: { language: 'kql', expression: '' },
         filters: [],
-        view_mode: 'documents',
+        view_mode: VIEW_MODE.DOCUMENT_LEVEL,
         hide_chart: false,
         hide_table: false,
         time_restore: false,
@@ -121,7 +122,7 @@ spaceTest.describe('Discover unsaved changes indicator', { tag: tags.deploymentA
     await expect(pageObjects.discover.unsavedChangesIndicator()).toBeHidden();
 
     expect(await pageObjects.dataGrid.getColumnTitles()).toStrictEqual(['@timestamp', 'bytes']);
-    await pageObjects.unifiedFieldList.clickFieldListItemAdd('extension');
+    await pageObjects.dataGrid.addFieldFromSidebar('extension');
 
     expect(await pageObjects.dataGrid.getColumnTitles()).toStrictEqual([
       '@timestamp',
@@ -146,10 +147,9 @@ spaceTest.describe('Discover unsaved changes indicator', { tag: tags.deploymentA
       await expect(pageObjects.discover.unsavedChangesIndicator()).toBeHidden();
 
       // changes to columns
-      await expect
-        .poll(() => pageObjects.dataGrid.getColumnTitles())
-        .toStrictEqual(['@timestamp', 'bytes']);
-      await pageObjects.unifiedFieldList.clickFieldListItemAdd('extension');
+      await expect(pageObjects.dataGrid.getColumnHeader('bytes')).toBeVisible();
+      expect(await pageObjects.dataGrid.getColumnTitles()).toStrictEqual(['@timestamp', 'bytes']);
+      await pageObjects.dataGrid.addFieldFromSidebar('extension');
 
       expect(await pageObjects.dataGrid.getColumnTitles()).toStrictEqual([
         '@timestamp',
@@ -160,9 +160,9 @@ spaceTest.describe('Discover unsaved changes indicator', { tag: tags.deploymentA
 
       await pageObjects.unifiedFieldList.clickFieldListItemRemove('extension');
 
-      await expect
-        .poll(() => pageObjects.dataGrid.getColumnTitles())
-        .toStrictEqual(['@timestamp', 'bytes']);
+      await pageObjects.dataGrid.waitForLoad();
+      await expect(pageObjects.dataGrid.getColumnHeader('extension')).toBeHidden();
+      expect(await pageObjects.dataGrid.getColumnTitles()).toStrictEqual(['@timestamp', 'bytes']);
       await expect(pageObjects.discover.unsavedChangesIndicator()).toBeHidden();
 
       // changes to breakdown field
