@@ -8,7 +8,14 @@
  */
 
 /**
- * Migration recommendation: MIGRATE TO SCOUT.
+ * Migration recommendation: Convert to unit tests!
+ * 
+ * Leave a single smoke test that does something like the following
+ * - Run an ES|QL query that triggers group by
+ * - Confirm group by is displayed, maybe check a couple elements like group count and opening context menu
+ * - Include a simple full screen check for good measure
+ * - Set group by to "none" -> confirm no errors
+ * - Set group by back to previous field, switch to classic mode -> confirm no errors
  */
 
 import expect from '@kbn/expect';
