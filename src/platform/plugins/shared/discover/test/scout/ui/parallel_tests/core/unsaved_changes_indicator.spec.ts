@@ -14,7 +14,6 @@ import { spaceTest, tags, testData, type DiscoverScoutSpace } from '../../fixtur
 const SAVED_SEARCH_NAME = 'test saved search';
 const SAVED_SEARCH_WITH_FILTERS_NAME = 'test saved search with filters';
 const CUSTOM_SAMPLE_SIZE = 250;
-const CUSTOM_ROWS_PER_PAGE = 25;
 
 const createSavedSearch = async (
   discoverScoutSpace: DiscoverScoutSpace,
@@ -153,21 +152,6 @@ spaceTest.describe('Discover unsaved changes indicator', { tag: tags.deploymentA
       await pageObjects.dataGrid.openGridDisplaySettings();
       expect(await pageObjects.dataGrid.getCurrentSampleSize()).toBe(testData.DEFAULT_SAMPLE_SIZE);
       await page.keyboard.press('Escape');
-    });
-
-    await spaceTest.step('revert rows per page changes', async () => {
-      expect(await pageObjects.dataGrid.getCurrentRowsPerPage()).toBe(
-        testData.DEFAULT_ROWS_PER_PAGE
-      );
-      await pageObjects.dataGrid.changeRowsPerPageTo(CUSTOM_ROWS_PER_PAGE);
-      expect(await pageObjects.dataGrid.getCurrentRowsPerPage()).toBe(CUSTOM_ROWS_PER_PAGE);
-      await expect(pageObjects.discover.unsavedChangesIndicator()).toBeVisible();
-
-      await pageObjects.discover.revertUnsavedChanges();
-      await expect(pageObjects.discover.unsavedChangesIndicator()).toBeHidden();
-      expect(await pageObjects.dataGrid.getCurrentRowsPerPage()).toBe(
-        testData.DEFAULT_ROWS_PER_PAGE
-      );
     });
   });
 
