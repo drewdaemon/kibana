@@ -31,13 +31,13 @@ jest.mock('../../components/field_stats', () => ({
   FieldStats: jest.fn(() => <div data-testid="mock-field-stats" />),
 }));
 
-const mockUseQuerySubscriber = useQuerySubscriber as jest.Mock;
-const mockHasQuerySubscriberData = hasQuerySubscriberData as unknown as jest.Mock;
-const mockFieldStats = FieldStats as jest.Mock;
+const mockUseQuerySubscriber = jest.mocked(useQuerySubscriber);
+const mockHasQuerySubscriberData = jest.mocked(hasQuerySubscriberData);
+const mockFieldStats = jest.mocked(FieldStats);
 
 const defaultQuerySubscriberResult = {
-  query: { query: '', language: 'lucene' } as Query,
-  filters: [] as Filter[],
+  query: { query: '', language: 'lucene' },
+  filters: [],
   fromDate: 'now-15m',
   toDate: 'now',
   searchMode: 'documents' as const,
@@ -67,7 +67,7 @@ const renderComponent = (props: Partial<UnifiedFieldListItemStatsProps> = {}) =>
   const defaultProps: UnifiedFieldListItemStatsProps = {
     stateService,
     field: aggrField,
-    services: getServicesMock() as unknown as UnifiedFieldListItemStatsProps['services'],
+    services: getServicesMock(),
     dataView: stubDataView,
     onAddFilter: jest.fn(),
     ...props,
@@ -187,22 +187,8 @@ describe('<UnifiedFieldListItemStats />', () => {
     expect(filtersProp).toEqual([queryFilter, additionalFilter]);
   });
 
-  it('forwards dataView to FieldStats', () => {
-    renderComponent({ dataView: stubDataView });
-
-    const dataViewProp = mockFieldStats.mock.calls[0][0].dataViewOrDataViewId;
-    expect(dataViewProp).toBe(stubDataView);
-  });
-
-  it('forwards onAddFilter to FieldStats', () => {
+  it('forwards props to FieldStats', () => {
     const onAddFilter = jest.fn();
-    renderComponent({ onAddFilter });
-
-    const onAddFilterProp = mockFieldStats.mock.calls[0][0].onAddFilter;
-    expect(onAddFilterProp).toBe(onAddFilter);
-  });
-
-  it('forwards query, fromDate, and toDate from query subscriber to FieldStats', () => {
     const query: Query = { query: 'host: localhost', language: 'lucene' };
     mockUseQuerySubscriber.mockReturnValue({
       ...defaultQuerySubscriberResult,
@@ -211,16 +197,18 @@ describe('<UnifiedFieldListItemStats />', () => {
       toDate: '2024-01-31',
     });
 
-    renderComponent();
+    renderComponent({ dataView: stubDataView, onAddFilter });
 
     const props = mockFieldStats.mock.calls[0][0];
+    expect(props.dataViewOrDataViewId).toBe(stubDataView);
+    expect(props.onAddFilter).toBe(onAddFilter);
     expect(props.query).toBe(query);
     expect(props.fromDate).toBe('2024-01-01');
     expect(props.toDate).toBe('2024-01-31');
   });
 
   it('extracts uiSettings from core.uiSettings', () => {
-    const services = getServicesMock() as unknown as UnifiedFieldListItemStatsProps['services'];
+    const services = getServicesMock();
 
     renderComponent({ services });
 

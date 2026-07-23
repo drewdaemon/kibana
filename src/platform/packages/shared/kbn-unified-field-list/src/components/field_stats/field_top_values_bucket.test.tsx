@@ -108,6 +108,7 @@ describe('UnifiedFieldList <FieldTopValuesBucket />', () => {
     renderBucket({ type: 'other', onAddFilter: jest.fn() });
 
     expect(screen.queryAllByRole('button')).toHaveLength(0);
+    expect(screen.getByTestId('test-filterActions-placeholder')).toBeInTheDocument();
   });
 
   it('calls onAddFilter with "+" when plus button is clicked', async () => {
