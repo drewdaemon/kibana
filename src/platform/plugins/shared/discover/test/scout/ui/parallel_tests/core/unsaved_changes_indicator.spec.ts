@@ -8,10 +8,38 @@
  */
 
 import { expect } from '@kbn/scout/ui';
-import { spaceTest, tags } from '../../fixtures/common';
+import { spaceTest, tags, testData, type DiscoverScoutSpace } from '../../fixtures/common';
 
 const SAVED_SEARCH_NAME = 'test saved search';
 const SAVED_SEARCH_WITH_FILTERS_NAME = 'test saved search with filters';
+
+const createSavedSearch = async (
+  discoverScoutSpace: DiscoverScoutSpace,
+  savedSearchName: string,
+  columnOrder: string[] = []
+) => {
+  await discoverScoutSpace.createDiscoverSession({
+    title: savedSearchName,
+    tabs: [
+      {
+        id: 'persisted-data-view',
+        label: testData.DEFAULT_DATA_VIEW,
+        data_source: {
+          type: 'data_view_reference',
+          ref_id: discoverScoutSpace.getDataViewId(testData.DEFAULT_DATA_VIEW),
+        },
+        column_order: columnOrder,
+        sort: [{ name: '@timestamp', direction: 'desc' }],
+        query: { language: 'kql', expression: '' },
+        filters: [],
+        view_mode: 'documents',
+        hide_chart: false,
+        hide_table: false,
+        time_restore: false,
+      },
+    ],
+  });
+};
 
 spaceTest.describe('Discover unsaved changes indicator', { tag: tags.deploymentAgnostic }, () => {
   spaceTest.beforeAll(async ({ discoverScoutSpace }) => {
@@ -58,10 +86,9 @@ spaceTest.describe('Discover unsaved changes indicator', { tag: tags.deploymentA
 
   spaceTest(
     'should not show the indicator after loading a saved search, only after changes',
-    async ({ pageObjects }) => {
+    async ({ discoverScoutSpace, pageObjects }) => {
       const savedSearchName = 'test saved search for breakdown';
-      await pageObjects.discover.saveSearch(savedSearchName);
-      await pageObjects.discover.clickNewSearch();
+      await createSavedSearch(discoverScoutSpace, savedSearchName);
       await pageObjects.discover.loadSavedSearch(savedSearchName);
 
       await expect(pageObjects.discover.unsavedChangesIndicator()).toBeHidden();
@@ -86,12 +113,9 @@ spaceTest.describe('Discover unsaved changes indicator', { tag: tags.deploymentA
     }
   );
 
-  spaceTest('should allow reverting changes', async ({ pageObjects }) => {
+  spaceTest('should allow reverting changes', async ({ discoverScoutSpace, pageObjects }) => {
     const savedSearchName = 'test saved search for revert';
-    await pageObjects.discover.saveSearch(savedSearchName);
-    await pageObjects.unifiedFieldList.clickFieldListItemAdd('bytes');
-    await pageObjects.discover.saveUnsavedChanges();
-    await pageObjects.discover.clickNewSearch();
+    await createSavedSearch(discoverScoutSpace, savedSearchName, ['bytes']);
     await pageObjects.discover.loadSavedSearch(savedSearchName);
 
     await expect(pageObjects.discover.unsavedChangesIndicator()).toBeHidden();
@@ -113,12 +137,9 @@ spaceTest.describe('Discover unsaved changes indicator', { tag: tags.deploymentA
 
   spaceTest(
     'should hide the indicator once user manually reverts changes',
-    async ({ pageObjects }) => {
+    async ({ discoverScoutSpace, pageObjects }) => {
       const savedSearchName = 'test saved search for manual revert';
-      await pageObjects.discover.saveSearch(savedSearchName);
-      await pageObjects.unifiedFieldList.clickFieldListItemAdd('bytes');
-      await pageObjects.discover.saveUnsavedChanges();
-      await pageObjects.discover.clickNewSearch();
+      await createSavedSearch(discoverScoutSpace, savedSearchName, ['bytes']);
       await pageObjects.discover.loadSavedSearch(savedSearchName);
       await pageObjects.discover.waitUntilTabIsLoaded();
 

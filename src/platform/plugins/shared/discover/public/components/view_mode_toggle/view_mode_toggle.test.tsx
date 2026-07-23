@@ -206,13 +206,8 @@ describe('Document view mode toggle component', () => {
       </DiscoverToolkitTestProvider>
     );
 
-    await waitFor(() => {
-      expect(screen.getByTestId('discoverQueryTotalHits')).toBeVisible();
-    });
-
-    await waitFor(() => {
-      expect(screen.queryByTestId('dscViewModePatternAnalysisButton')).not.toBeInTheDocument();
-    });
+    expect(screen.getByTestId('discoverQueryTotalHits')).toBeVisible();
+    expect(screen.queryByTestId('dscViewModePatternAnalysisButton')).not.toBeInTheDocument();
     expect(screen.getByTestId('dscViewModeDocumentButton')).toBeVisible();
     expect(screen.getByTestId('dscViewModeFieldStatsButton')).toBeVisible();
   });
