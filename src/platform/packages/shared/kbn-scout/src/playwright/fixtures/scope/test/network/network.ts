@@ -12,10 +12,16 @@ import type { ScoutPage } from '../scout_page';
 export class Network {
   constructor(private readonly page: ScoutPage) {}
 
-  async countMatchingRequests(endpoint: string, action: () => Promise<void>): Promise<number> {
+  async countMatchingRequests(
+    matchOptions: { endpoint: string; method?: 'GET' | 'POST' | 'PUT' | 'DELETE' },
+    action: () => Promise<void>
+  ): Promise<number> {
     let count = 0;
-    const listener = (request: { url: () => string }) => {
-      if (request.url().includes(endpoint)) {
+    const listener = (request: { url: () => string; method: () => string }) => {
+      if (
+        request.url().includes(matchOptions.endpoint) &&
+        (!matchOptions.method || request.method() === matchOptions.method)
+      ) {
         count++;
       }
     };
